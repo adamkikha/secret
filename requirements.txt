@@ -1,1 +1,2 @@
 pytest==7.4.3
+argon2-cffi>=23.1.0
