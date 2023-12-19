@@ -14,7 +14,7 @@ class Test_Record:
     )
 
     def test_get_mdate(self, pass_mdate: bool = False):
-        assert 0 <= time.time() - self.record.get_mdate(False) <= 2
+        assert 0 <= time.mktime(time.localtime()) - self.record.get_mdate(False) <= 2
         if pass_mdate:
             assert self.record.get_mdate(False) == self.record.get_mdate(True)
 
