@@ -3,7 +3,7 @@ from src.model.record import Record
 from src.utils import TimeOracle
 
 
-class SecretPass:
+class PasswordsModel:
     def __init__(self, time_oracle: TimeOracle):
         self.time_oracle: TimeOracle = time_oracle
         self.records: list[Record] = []

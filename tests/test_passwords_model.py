@@ -1,15 +1,15 @@
 import os
 import pickle
 import pytest
-from src.model.secretpass import SecretPass
+from src.model.passwords_model import PasswordsModel
 from src.model.record import Record
 from src.utils import TimeOracle
 
 
 class Test_SecretPass:
     time_oracle = TimeOracle()
-    sp = SecretPass(time_oracle)
-    sp.initialize("test1.secretpass", create=True)
+    passwords_model = PasswordsModel(time_oracle)
+    passwords_model.initialize("test1.secretpass", create=True)
 
     def test_records(self):
         tests = [
@@ -51,27 +51,27 @@ class Test_SecretPass:
         # add records
         for record in test_records:
             print(record)
-            counter = self.sp.next_id
-            length = len(self.sp.get_records())
-            self.sp.add_record(record)
-            assert self.sp.next_id == counter + 1 == length + 1
-            assert self.sp.get_records()[length].id == record.id
+            counter = self.passwords_model.next_id
+            length = len(self.passwords_model.get_records())
+            self.passwords_model.add_record(record)
+            assert self.passwords_model.next_id == counter + 1 == length + 1
+            assert self.passwords_model.get_records()[length].id == record.id
 
         # get records
         for record in test_records:
-            assert self.sp.get_record(record.id) is record
+            assert self.passwords_model.get_record(record.id) is record
 
         # delete records
         for record in test_records:
-            length = len(self.sp.get_records())
-            assert self.sp.delete_record(record.id) is True
-            assert self.sp.get_record(record.id) is None
-            assert len(self.sp.get_records()) == length - 1
+            length = len(self.passwords_model.get_records())
+            assert self.passwords_model.delete_record(record.id) is True
+            assert self.passwords_model.get_record(record.id) is None
+            assert len(self.passwords_model.get_records()) == length - 1
 
     def test_files(self):
-        self.sp.add_record(
+        self.passwords_model.add_record(
             Record(
-                self.sp.next_id,
+                self.passwords_model.next_id,
                 "a",
                 "1",
                 "t",
@@ -80,9 +80,9 @@ class Test_SecretPass:
                 self.time_oracle.get_current_time(),
             )
         )
-        self.sp.add_record(
+        self.passwords_model.add_record(
             Record(
-                self.sp.next_id,
+                self.passwords_model.next_id,
                 "b",
                 "2",
                 "a",
@@ -91,22 +91,24 @@ class Test_SecretPass:
                 self.time_oracle.get_current_time(),
             )
         )
-        records = self.sp.get_records()
-        next_id = self.sp.next_id
+        records = self.passwords_model.get_records()
+        next_id = self.passwords_model.next_id
 
         # serialize , save file and load
-        self.sp.save_file(self.sp.serialize_records(), b"\x55\x55", b"\x12\x34")
-        self.sp = SecretPass(self.time_oracle)
-        self.sp.initialize("test1.secretpass", create=False)
-        assert self.sp.tag == b"\x55\x55"
-        assert self.sp.nonce == b"\x12\x34"
-        assert self.sp.ciphertext == pickle.dumps((records, next_id))
+        self.passwords_model.save_file(
+            self.passwords_model.serialize_records(), b"\x55\x55", b"\x12\x34"
+        )
+        self.passwords_model = PasswordsModel(self.time_oracle)
+        self.passwords_model.initialize("test1.secretpass", create=False)
+        assert self.passwords_model.tag == b"\x55\x55"
+        assert self.passwords_model.nonce == b"\x12\x34"
+        assert self.passwords_model.ciphertext == pickle.dumps((records, next_id))
 
         # construct records
-        self.sp.construct_records(self.sp.ciphertext)
-        assert self.sp.next_id == next_id
-        assert len(self.sp.get_records()) == len(records)
-        for old_record, new_record in zip(records, self.sp.get_records()):
+        self.passwords_model.construct_records(self.passwords_model.ciphertext)
+        assert self.passwords_model.next_id == next_id
+        assert len(self.passwords_model.get_records()) == len(records)
+        for old_record, new_record in zip(records, self.passwords_model.get_records()):
             assert old_record.id == new_record.id
             assert old_record.username == new_record.username
             assert old_record.password == new_record.password
@@ -118,11 +120,11 @@ class Test_SecretPass:
 
         # initiation
         with pytest.raises(FileNotFoundError):
-            self.sp = SecretPass(self.time_oracle)
-            self.sp.initialize("test2.secretpass", create=False)
+            self.passwords_model = PasswordsModel(self.time_oracle)
+            self.passwords_model.initialize("test2.secretpass", create=False)
 
         with pytest.raises(FileExistsError):
-            self.sp = SecretPass(self.time_oracle)
-            self.sp.initialize("test1.secretpass", create=True)
+            self.passwords_model = PasswordsModel(self.time_oracle)
+            self.passwords_model.initialize("test1.secretpass", create=True)
 
         os.remove("test1.secretpass")
