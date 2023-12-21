@@ -20,7 +20,9 @@ class PasswordsModel:
             open(path, "x").close()
         else:
             with open(path, "rb") as file:
-                self.ciphertext, self.tag, self.nonce = pickle.loads(file.read())
+                self.ciphertext, self.tag, self.nonce, self.salt = pickle.loads(
+                    file.read()
+                )
 
     def construct_records(self, plaintext: bytes):
         self.records, self.next_id = pickle.loads(plaintext)
@@ -48,7 +50,12 @@ class PasswordsModel:
     def serialize_records(self):
         return pickle.dumps((self.records, self.next_id))
 
-    def save_file(self, ciphertext: bytes, tag: bytes, nonce: bytes):
-        file_data = pickle.dumps((ciphertext, tag, nonce))
+    def save_file(self, ciphertext: bytes, tag: bytes, nonce: bytes, salt: bytes):
+        file_data = pickle.dumps((ciphertext, tag, nonce, salt))
         with open(self.path, "wb") as file:
             file.write(file_data)
+
+    def close_file(self):
+        self.path = ""
+        self.records = []
+        self.next_id = 0

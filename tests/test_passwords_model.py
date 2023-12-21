@@ -6,12 +6,12 @@ from src.model.record import Record
 from src.utils import TimeOracle
 
 
-class Test_SecretPass:
+class Test_PasswordsModel:
     time_oracle = TimeOracle()
     passwords_model = PasswordsModel(time_oracle)
-    passwords_model.initialize("test1.secretpass", create=True)
 
     def test_records(self):
+        self.passwords_model.initialize("test1.secretpass", create=True)
         tests = [
             (0, "a", "1", "t", "n.com", "a1b2c3", self.time_oracle.get_current_time()),
             (
@@ -68,7 +68,10 @@ class Test_SecretPass:
             assert self.passwords_model.get_record(record.id) is None
             assert len(self.passwords_model.get_records()) == length - 1
 
+        os.remove("test1.secretpass")
+
     def test_files(self):
+        self.passwords_model.initialize("test1.secretpass", create=True)
         self.passwords_model.add_record(
             Record(
                 self.passwords_model.next_id,
@@ -93,15 +96,18 @@ class Test_SecretPass:
         )
         records = self.passwords_model.get_records()
         next_id = self.passwords_model.next_id
-
         # serialize , save file and load
         self.passwords_model.save_file(
-            self.passwords_model.serialize_records(), b"\x55\x55", b"\x12\x34"
+            self.passwords_model.serialize_records(),
+            b"\x55\x55",
+            b"\x12\x34",
+            b"\x01\xAB",
         )
         self.passwords_model = PasswordsModel(self.time_oracle)
         self.passwords_model.initialize("test1.secretpass", create=False)
         assert self.passwords_model.tag == b"\x55\x55"
         assert self.passwords_model.nonce == b"\x12\x34"
+        assert self.passwords_model.salt == b"\x01\xAB"
         assert self.passwords_model.ciphertext == pickle.dumps((records, next_id))
 
         # construct records
