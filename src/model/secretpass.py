@@ -1,12 +1,20 @@
 import pickle
 from src.model.record import Record
+from src.utils import TimeOracle
 
 
 class SecretPass:
-    def __init__(self, path: str, create: bool = False):
-        self.path = path
+    def __init__(self, time_oracle: TimeOracle):
+        self.time_oracle: TimeOracle = time_oracle
         self.records: list[Record] = []
         self.next_id: int = 0
+        self.path: str = ""
+
+    def initialize(self, path: str, create: bool):
+        self.path = path
+        self.records = []
+        self.next_id = 0
+
         if create is True:
             # create a new file and close it
             open(path, "x").close()
