@@ -36,7 +36,7 @@ def test_kdf():
     ]
     for password, salt, expected_hash_hex in tests:
         expected_hash = binascii.unhexlify(expected_hash_hex)
-        computed_hash = kdf(password, salt)
+        computed_hash = kdf(password, salt.encode())
         assert computed_hash == expected_hash
 
 
