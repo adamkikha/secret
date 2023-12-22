@@ -4,10 +4,8 @@ from src.controller.crypto import kdf, encrypt, decrypt
 
 class Controller:
     def __init__(self):
+        self.model = None
         self.file_path = None
-
-    def set_model(self, model):
-        self.model = model
 
     def create_file(self, master_key, file_path):
         self.file_path = file_path
