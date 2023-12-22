@@ -49,6 +49,148 @@ class InitFrame(ctk.CTkFrame):
         pass
 
 
+class RecordsWindow(ctk.CTkToplevel):
+    """frame used for add, view, and edit the records"""
+
+    def __init__(self, controller, table_wid, headers):
+        """_summary_
+
+        Args:
+            table_wid (_type_): _description_
+            headers (_type_): _description_
+            non_editable_headers (_type_): _description_
+            "Username", "password", "Tag", "URL", "Notes", "password modification date","Record modification date", "ID"
+        """
+        ctk.CTkToplevel.__init__(self)
+
+        self.title("View")
+        self.set_geometry(600, 550)
+        self.grab_set()
+
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.ent_fields = []
+        self.controller = controller
+        self.data_table = table_wid
+        self.record_id = None
+        self.record_inter_id = None
+        self.record_orig_data = None
+        self.dates = []
+        # ---------- widgets ----------
+        i = 0
+        for i, header in enumerate(headers[1:-3]):
+            # header label
+            header_label = ctk.CTkLabel(self, text=header + ":")
+            header_label.grid(row=i, column=0, padx=50, pady=5, sticky="w")
+            # data entry
+            data_entry = ctk.CTkEntry(self, width=250)
+            data_entry.grid(row=i, column=1, padx=5, pady=5)
+            # saving the entry fields in an array as a class variable
+            self.ent_fields.append(data_entry)
+
+        for header in headers[-2:]:
+            i += 1  # update the next grid row
+            # header label
+            header_label = ctk.CTkLabel(self, text=header + ":")
+            header_label.grid(row=i, column=0, padx=50, pady=5, sticky="w")
+            # data label
+            data_entry = ctk.CTkLabel(self, text="", width=250)
+            data_entry.grid(row=i, column=1, padx=5, pady=5)
+            # saving the date widgets in an array as a class variable
+            self.dates.append(data_entry)
+
+        i += 1  # update the next grid row
+        # notes label
+        notes_label = ctk.CTkLabel(self, text=headers[-3] + ":")
+        notes_label.grid(row=i, column=0, padx=50, pady=5, sticky="w")
+        # notes entry
+        self.notes_ent = tk.Text(self, wrap="word", width=40, height=10)
+        self.notes_ent.grid(row=i + 1, column=1, padx=5, pady=5)
+
+        # actions button
+        self.btn = ctk.CTkButton(
+            master=self,
+            width=150,
+            height=30,
+            text="Confirm",
+            font=("Trebuchet MS", 20, "bold"),
+            command=self.btn_add_record_com,
+        )
+        self.btn.place(anchor="c", relx=0.5, rely=0.9)
+        # -----------------------------
+
+    def set_geometry(self, width, height):
+        self.resizable(False, False)
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        self.geometry(f"{width}x{height}+{x}+{y}")
+
+    def read_ent_fields(self):
+        record = []
+        for wid in self.ent_fields:
+            record.append(wid.get())
+            # wid.delete(0, tk.END)
+        record.append(self.notes_ent.get("1.0", "end-1c"))
+        return record
+
+    def view_record(self, record, record_inter_id):
+        self.record_id = record[-1]
+        record.pop(0)  # get rid of the index
+        record.pop()  # get rid of the id
+        self.record_inter_id = record_inter_id
+        for i, value in enumerate(record[:-3]):
+            self.ent_fields[i].insert(0, str(value))
+            self.ent_fields[i].configure(state="readonly", fg_color="#f2f2f2")
+
+        self.notes_ent.insert("1.0", record[-3])
+        self.notes_ent.config(state="disabled", bg="#f2f2f2")
+
+        self.dates[0].configure(text=record[-2])
+        self.dates[1].configure(text=record[-1])
+
+        self.btn.configure(text="Edit", command=self.btn_edit_com)
+
+    def btn_edit_com(self):
+        # save the original data
+        self.record_orig_data = self.read_ent_fields()
+        # make the fields editable
+        for wid in self.ent_fields:
+            wid.configure(state="normal", fg_color="#ffffff")
+        self.notes_ent.config(state="normal", bg="#ffffff")
+        # change the button text and command
+        self.btn.configure(text="Confirm", command=self.btn_confirm_edit_com)
+
+    def btn_confirm_edit_com(self):
+        record = self.read_ent_fields()
+        record.insert(0, self.record_id)
+        # current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+        # record.append(current_time)
+        # record.append(current_time)
+        print("old:", self.record_orig_data)
+        print("new:", record)
+
+        # send the updates to the GUI controller
+        self.controller.edit_record(record, self.record_id)
+        # update the table
+        # self.data_table.item(self.record_inter_id, values=record)
+        # self.data_tree.insert("", "end", values=row)
+        self.destroy()
+
+    def btn_add_record_com(self):
+        new_record = self.read_ent_fields()
+        # send the updates to the GUI controller
+        self.controller.add_record(new_record)
+        # add the record to the table
+        # self.data_table.insert("", "end", values=new_record)
+        self.destroy()
+
+    def on_close(self):
+        # Release the grab when the window is closed
+        self.grab_release()
+        self.destroy()
+
+
 class PassMKFrame(ctk.CTkFrame):
     def __init__(self, controller):
         ctk.CTkFrame.__init__(self, controller)
@@ -193,20 +335,19 @@ class PassMenuBar(tk.Menu):
     def open_file_clicked(self):
         self.controller.config(menu="")
         self.frame.pack_forget()
-        self.controller.open_file()
+        self.controller.pick_file()
         self.controller.master_key_frame.display(False)
 
     def lock_file_clicked(self):
         self.controller.passwords_display_frame.clear_data()
-        self.controller.master_key = None
-        self.controller.passwords_enc_data = None
         self.controller.passwords_display_frame.pack_forget()
+        self.controller.master_key = None
+        self.controller.passwords_dec_data = None
         self.controller.master_key_frame.display()
 
     def close_file_clicked(self):
         self.controller.config(menu="")
         self.controller.master_key = None
-        self.controller.passwords_enc_data = None
         self.controller.passwords_dec_data = None
         self.frame.pack_forget()
         self.controller.init_frame.display()
@@ -215,15 +356,21 @@ class PassMenuBar(tk.Menu):
 class PasswordsDisplayFrame(ctk.CTkFrame):
     def __init__(self, controller):
         ctk.CTkFrame.__init__(self, controller)
+
         self.controller = controller
         self.menu_bar = PassMenuBar(self.controller, self)
-        self.configure()
-        # ---------- attributes ----------
-        self.headers = ("ID", "Username", "password", "Tag", "URL")
-        self.headers_size = (30, 150, 200, 50, 200)
-        self.center_header_indeces = [4]
-        # ---------- widgets ----------
 
+        # ---------- attributes ----------
+        self.headers = ["ID", "Username", "password", "Tag", "URL"]
+        self.hidden_headers = [
+            "Notes",
+            "password modification date",
+            "Record modification date",
+        ]
+
+        self.headers_size = (10, 150, 200, 50, 220)
+        self.center_header_indeces = [0, 3]
+        # ---------- widgets ----------
         # Add button
         self.add_btn = ctk.CTkButton(
             master=self,
@@ -250,8 +397,8 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
         )
         self.scroll_bar.pack(side="right", pady=5, fill="y")
         self.data_tree.configure(yscrollcommand=self.scroll_bar.set)
-
         # -----------------------------
+
         # Define column headings
         for i, col in enumerate(self.headers):
             self.data_tree.heading(col, text=col)
@@ -263,55 +410,37 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
     def display(self):
         self.menu_bar.display()
         self.pack(pady=10, padx=10, fill="both", expand=True)
-        if self.controller.passwords_enc_data:
-            self.fill_table(self.controller.passwords_enc_data)
+        if self.controller.passwords_dec_data:
+            self.fill_table(self.controller.passwords_dec_data)
 
     def fill_table(self, data):
-        for row in data:
-            self.data_tree.insert("", "end", values=row)
+        for i, row in enumerate(data):
+            self.data_tree.insert("", "end", values=[str(i + 1)] + row)
 
     def clear_data(self):
         for item_id in self.data_tree.get_children():
             self.data_tree.delete(item_id)
 
     def on_double_click_evt(self, event):
-        item_id = self.data_tree.selection()[0]
-        values = self.data_tree.item(item_id, "values")
-        print(values)
-        self.view_record(values)
+        record_inter_id = self.data_tree.selection()[0]
+        values = list(self.data_tree.item(record_inter_id, "values"))
+        self.view_record(values, record_inter_id)
 
-    def view_record(self, record_values):
-        top_level = ctk.CTkToplevel()
-        top_level.title("View")
-        self.top_level_windows_geometry(top_level, 400, 350)
-        top_level.grab_set()
-        top_level.protocol(
-            "WM_DELETE_WINDOW", lambda: self.on_top_level_close(top_level)
+    def view_record(self, record_values, record_inter_id):
+        record_window = RecordsWindow(
+            self.controller, self.data_tree, self.headers + self.hidden_headers
         )
-        for header, value in zip(self.headers, record_values):
-            label = ctk.CTkLabel(top_level, text=f"{header}: {value}")
-            label.pack()
-
-    def top_level_windows_geometry(self, top_level_wind, width, height):
-        top_level_wind.resizable(False, False)
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-
-        x = (screen_width - width) // 2
-        y = (screen_height - height) // 2
-        top_level_wind.geometry(f"{width}x{height}+{x}+{y}")
-
-    def on_top_level_close(self, top_level_wind):
-        # Release the grab when the top-level window is closed
-        top_level_wind.grab_release()
-        top_level_wind.destroy()
+        record_window.view_record(record_values, record_inter_id)
+        # for header, value in zip(self.headers, record_values):
+        #     label = ctk.CTkLabel(record_window, text=f"{header}: {value}")
+        #     label.pack()
 
     def on_right_click_evt(self, event):
         # Identify the item and column that were right-clicked
-        record_id = self.data_tree.identify_row(event.y)
+        record_inter_id = self.data_tree.identify_row(event.y)
         col_id = int(self.data_tree.identify_column(event.x).split("#")[1])
-        if record_id and col_id:
-            record_values = self.data_tree.item(record_id, "values")
+        if record_inter_id and col_id:
+            record_values = self.data_tree.item(record_inter_id, "values")
             clicked_text = record_values[col_id - 1]
 
             context_menu = tk.Menu(self.data_tree, tearoff=0)
@@ -325,7 +454,9 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
         self.data_tree.clipboard_append(text)
 
     def add_btn_com(self):
-        pass
+        record_window = RecordsWindow(
+            self.controller, self.data_tree, self.headers + self.hidden_headers
+        )
 
 
 class Secret(ctk.CTk):
@@ -336,13 +467,19 @@ class Secret(ctk.CTk):
         self.height = 700
         self.set_geometry()
 
+        self.passwords_controller = None
+
+        # ---------- data ----------
         self.master_key = None
         self.passwords_file_path = None
-        self.passwords_enc_data = None
         self.passwords_dec_data = None
-        # ---------- frames ----------
+        # --------------------------
 
+
+        # ---------- frames ----------
+        # initial window
         self.init_frame = InitFrame(self)
+        # master key window
         self.master_key_frame = PassMKFrame(self)
         # passwords
         self.passwords_display_frame = PasswordsDisplayFrame(self)
@@ -362,17 +499,28 @@ class Secret(ctk.CTk):
 
         self.geometry(f"{self.width}x{self.height}+{x}+{y}")
 
-    def open_file(self):
+    def pick_file(self):
         # TODO: file type should be changed to a specific type
         self.passwords_file_path = filedialog.askopenfilename(
             title="Open File", filetypes=[("All files", "*.*")], initialdir="./"
         )
 
+    def add_record(self, record):
+        pass
+
+    def edit_record(self, record, record_id):
+        pass
 
     def check_MK(self, master_key):
+        self.master_key = master_key
+        # result = self.passwords_controller.decrypt_file(master_key, self.passwords_file_path)
+        # return result
         return True
     
-    
+    def update_data(self,new_data):
+        self.passwords_dec_data = new_data
+        self.passwords_display_frame.display()
+        
 
 
 if __name__ == "__main__":
@@ -381,7 +529,3 @@ if __name__ == "__main__":
     ctk.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
     app = Secret()
     app.mainloop()
-
-
-
-
