@@ -2,8 +2,9 @@ import os
 import pickle
 import pytest
 from src.model.passwords_model import PasswordsModel
-from src.model.record import Record
+from src.model.password_record import PasswordRecord
 from src.utils import TimeOracle
+from copy import copy
 
 
 class Test_PasswordsModel:
@@ -45,12 +46,11 @@ class Test_PasswordsModel:
 
         test_records = []
         for test in tests:
-            test_records.append(Record(*test))
+            test_records.append(PasswordRecord(*test))
 
         print(test_records)
         # add records
         for record in test_records:
-            print(record)
             counter = self.passwords_model.next_id
             length = len(self.passwords_model.get_records())
             self.passwords_model.add_record(record)
@@ -60,6 +60,59 @@ class Test_PasswordsModel:
         # get records
         for record in test_records:
             assert self.passwords_model.get_record(record.id) is record
+
+        # modify records
+        copy_test_records = test_records.copy()
+
+        old_record, new_record = test_records[1], copy_test_records[2]
+        original_record = copy(old_record)
+        self.passwords_model.modify_pass_record(
+            old_record.id,
+            new_record.username,
+            old_record.password,
+            old_record.tag,
+            old_record.url,
+            old_record.notes,
+        )
+        assert old_record.pass_mdate == original_record.pass_mdate
+        assert old_record.username == new_record.username
+        assert old_record.password == original_record.password
+        assert old_record.tag == original_record.tag
+        assert old_record.url == original_record.url
+        assert old_record.notes == original_record.notes
+
+        old_record, new_record = test_records[2], copy_test_records[3]
+        original_record = copy(old_record)
+        self.passwords_model.modify_pass_record(
+            old_record.id,
+            old_record.username,
+            old_record.password,
+            old_record.tag,
+            old_record.url,
+            old_record.notes,
+        )
+        assert old_record.record_mdate == original_record.record_mdate
+        assert old_record.pass_mdate == original_record.pass_mdate
+        assert old_record.username == original_record.username
+        assert old_record.password == original_record.password
+        assert old_record.tag == original_record.tag
+        assert old_record.url == original_record.url
+        assert old_record.notes == original_record.notes
+
+        old_record, new_record = test_records[0], copy_test_records[1]
+        self.passwords_model.modify_pass_record(
+            old_record.id,
+            new_record.username,
+            new_record.password,
+            new_record.tag,
+            new_record.url,
+            new_record.notes,
+        )
+        assert old_record.username == new_record.username
+        assert old_record.password == new_record.password
+        assert old_record.tag == new_record.tag
+        assert old_record.url == new_record.url
+        assert old_record.notes == new_record.notes
 
         # delete records
         for record in test_records:
@@ -73,7 +126,7 @@ class Test_PasswordsModel:
     def test_files(self):
         self.passwords_model.initialize("test1.secretpass", create=True)
         self.passwords_model.add_record(
-            Record(
+            PasswordRecord(
                 self.passwords_model.next_id,
                 "a",
                 "1",
@@ -84,7 +137,7 @@ class Test_PasswordsModel:
             )
         )
         self.passwords_model.add_record(
-            Record(
+            PasswordRecord(
                 self.passwords_model.next_id,
                 "b",
                 "2",
@@ -123,6 +176,12 @@ class Test_PasswordsModel:
             assert old_record.notes == new_record.notes
             assert old_record.record_mdate == new_record.record_mdate
             assert old_record.pass_mdate == new_record.pass_mdate
+
+        # close file
+        self.passwords_model.close_file()
+        assert self.passwords_model.path == ""
+        assert len(self.passwords_model.records) == 0
+        assert self.passwords_model.next_id == 0
 
         # initiation
         with pytest.raises(FileNotFoundError):
