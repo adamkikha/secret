@@ -7,6 +7,7 @@ class TimeOracle:
 
     def get_current_time(self):
         return self.initial_perf_time + time.perf_counter()
-
-    def get_readable_time(self, current_time):
+    
+    @staticmethod
+    def get_readable_time(current_time):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(current_time))
