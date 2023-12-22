@@ -27,6 +27,7 @@ class Model:
 
     def construct_records(self, plaintext: bytes):
         self.records, self.next_id = pickle.loads(plaintext)
+        self.view.update_data(self.get_records())
 
     def get_records(self):
         return self.records
@@ -62,3 +63,4 @@ class Model:
         self.path = ""
         self.records = []
         self.next_id = 0
+        self.view.update_data(self.get_records())
