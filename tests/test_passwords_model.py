@@ -129,7 +129,6 @@ class Test_PasswordsModel:
             b"\x12\x34",
             b"\x01\xAB",
         )
-        self.passwords_model = PasswordsModel(self.time_oracle)
         self.passwords_model.initialize("test1.secretpass", create=False)
         assert self.passwords_model.tag == b"\x55\x55"
         assert self.passwords_model.nonce == b"\x12\x34"
@@ -158,7 +157,6 @@ class Test_PasswordsModel:
 
         # initiation
         with pytest.raises(FileNotFoundError):
-            self.passwords_model = PasswordsModel(self.time_oracle)
             self.passwords_model.initialize("test2.secretpass", create=False)
 
         # check overwrite
