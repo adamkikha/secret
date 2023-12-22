@@ -18,7 +18,7 @@ class Model:
 
         if create is True:
             # create a new file and close it
-            open(path, "x").close()
+            open(path, "wb").close()
         else:
             with open(path, "rb") as file:
                 self.ciphertext, self.tag, self.nonce, self.salt = pickle.loads(

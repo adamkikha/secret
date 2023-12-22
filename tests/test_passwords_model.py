@@ -161,8 +161,7 @@ class Test_PasswordsModel:
             self.passwords_model = PasswordsModel(self.time_oracle)
             self.passwords_model.initialize("test2.secretpass", create=False)
 
-        with pytest.raises(FileExistsError):
-            self.passwords_model = PasswordsModel(self.time_oracle)
-            self.passwords_model.initialize("test1.secretpass", create=True)
+        # check overwrite
+        self.passwords_model.initialize("test1.secretpass", create=True)
 
         os.remove("test1.secretpass")
