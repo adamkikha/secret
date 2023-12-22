@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import filedialog
 import customtkinter as ctk
+from tkinter import filedialog
+from src.utils import TimeOracle
 from src.model.password_record import PasswordRecord
 
 
@@ -34,7 +35,8 @@ class InitFrame(ctk.CTkFrame):
             height=40,
             text="Files Container",
             font=("Trebuchet MS", 20, "bold"),
-            command=self.files_btn_function,
+            command=None,
+            state="disabled",
         )
         self.files_btn.place(anchor="c", relx=0.5, rely=0.5)
         # ---------------------------
@@ -45,9 +47,6 @@ class InitFrame(ctk.CTkFrame):
     def passwords_btn_function(self):
         self.pack_forget()
         self.controller.passwords_display_frame.display()
-
-    def files_btn_function(self):
-        pass
 
 
 class RecordsWindow(ctk.CTkToplevel):
@@ -164,18 +163,11 @@ class RecordsWindow(ctk.CTkToplevel):
 
     def btn_confirm_edit_com(self):
         record = self.read_ent_fields()
-        record.insert(0, self.record_id)
-        # current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
-        # record.append(current_time)
-        # record.append(current_time)
-        print("old:", self.record_orig_data)
-        print("new:", record)
+        # print("old:", self.record_orig_data)
+        # print("new:", record)
 
         # send the updates to the GUI controller
         self.controller.edit_record(record, self.record_id)
-        # update the table
-        # self.data_table.item(self.record_inter_id, values=record)
-        # self.data_tree.insert("", "end", values=row)
         self.destroy()
 
     def btn_add_record_com(self):
@@ -239,26 +231,68 @@ class PassMKFrame(ctk.CTkFrame):
         self.pack(pady=10, padx=10, fill="both", expand=True)
 
     def back_btn_com(self):
+        # if self.controller.passwords_file_path:
+        self.controller.passwords_display_frame.menu_bar.close_file_clicked(save=False)
+        # else:
+        #     self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+        #     "Open", state="normal"
+        #     )
+        #     self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+        #     "New", state="normal"
+        #     )
+
+        # self.controller.passwords_display_frame.display()
         self.pack_forget()
-        self.controller.passwords_display_frame.display()
 
     def confirm_btn_com(self):
-        self.mk_ent.delete(0, tk.END)
         # self.mk_ent.configure(placeholder_text="Master Key")
-        print(self.mk_ent.get())
+        # print(self.mk_ent.get())
+
         if self.new_MK:
-            self.pop_up_window("Key set successfully!!", "green", "Success!")
-            self.pack_forget()
             self.controller.master_key = self.mk_ent.get()
+            self.controller.save_path()
             self.controller.passwords_display_frame.display()
+            self.pop_up_window("Key set successfully!!", "green", "Success!")
+            self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                "Lock", state="normal"
+            )
+            self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                "Close", state="normal"
+            )
+            self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                "Save", state="normal"
+            )
+            self.pack_forget()
         else:
             result = self.controller.check_MK(self.mk_ent.get())
             if result:
                 self.pop_up_window("File opened successfully!!", "green", "Success!")
-                self.pack_forget()
                 self.controller.passwords_display_frame.display()
+                self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                    "Lock", state="normal"
+                )
+                self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                    "Close", state="normal"
+                )
+                self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                    "Save", state="normal"
+                )
+                self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                    "Open", state="disabled"
+                )
+                self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                    "New", state="disabled"
+                )
+                self.pack_forget()
             else:
+                self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                    "Open", state="normal"
+                )
+                self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                    "New", state="normal"
+                )
                 self.pop_up_window("Wrong password!!", "red", "Failed!")
+        self.mk_ent.delete(0, tk.END)
 
     def pop_up_window(self, msg_text, text_color, win_title):
         pop_up_window = ctk.CTkToplevel(self)
@@ -308,10 +342,23 @@ class PassMenuBar(tk.Menu):
             label="Open", accelerator="Ctrl+O", command=self.open_file_clicked
         )
         self.file_menu.add_command(
-            label="Lock", accelerator="Ctrl+L", command=self.lock_file_clicked
+            label="Save",
+            accelerator="Ctrl+S",
+            state="disabled",
+            command=self.save_file_clicked,
         )
         self.file_menu.add_command(
-            label="Close", accelerator="Ctrl+E", command=self.close_file_clicked
+            label="Lock",
+            accelerator="Ctrl+L",
+            state="disabled",
+            command=self.lock_file_clicked,
+        )
+
+        self.file_menu.add_command(
+            label="Close",
+            accelerator="Ctrl+E",
+            state="disabled",
+            command=self.close_file_clicked,
         )
 
         self.view_menu = tk.Menu(self.menubar, tearoff=False)
@@ -329,27 +376,72 @@ class PassMenuBar(tk.Menu):
         self.controller.config(menu=self.menubar)
 
     def new_file_clicked(self):
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "Open", state="disabled"
+        )
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "New", state="disabled"
+        )
         self.controller.config(menu="")
         self.frame.pack_forget()
         self.controller.master_key_frame.display()
 
     def open_file_clicked(self):
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "Open", state="disabled"
+        )
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "New", state="disabled"
+        )
+        if not self.controller.passwords_file_path:
+            self.controller.pick_file()
+
         self.controller.config(menu="")
         self.frame.pack_forget()
-        self.controller.pick_file()
         self.controller.master_key_frame.display(False)
 
+    def save_file_clicked(self):
+        self.controller.passwords_controller.save_file()
+
     def lock_file_clicked(self):
-        self.controller.passwords_display_frame.clear_data()
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "Lock", state="disabled"
+        )
+
+        self.controller.passwords_controller.close_file(save=True)
+
         self.controller.passwords_display_frame.pack_forget()
         self.controller.master_key = None
-        self.controller.passwords_dec_data = None
-        self.controller.master_key_frame.display()
+        self.controller.passwords_dec_data = []
+        self.controller.master_key_frame.display(False)
 
-    def close_file_clicked(self):
+    def unlock_file_clicked(self):
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "Lock", state="normal"
+        )
+        # TODO: pop up window for lock
+
+    def close_file_clicked(self, save=True):
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "Lock", state="disabled"
+        )
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "Save", state="disabled"
+        )
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "Close", state="disabled"
+        )
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "Open", state="normal"
+        )
+        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "New", state="normal"
+        )
+        self.controller.passwords_controller.close_file(save)
         self.controller.config(menu="")
         self.controller.master_key = None
-        self.controller.passwords_dec_data = None
+        self.controller.passwords_dec_data = []
+        self.controller.passwords_file_path = None
         self.frame.pack_forget()
         self.controller.init_frame.display()
 
@@ -383,7 +475,7 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
             command=self.add_btn_com,
         )
         self.add_btn.pack(anchor="w", padx=0, pady=(20, 10))
-
+        self.add_btn.configure(state="disabled")
         # data container
         self.data_tree = ttk.Treeview(self, columns=self.headers, show="headings")
         self.data_tree.pack(pady=0, fill="both", expand=True)
@@ -409,10 +501,14 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
                 self.data_tree.column(col, width=self.headers_size[i])
 
     def display(self):
+        if self.controller.master_key:
+            self.add_btn.configure(state="normal")
+        else:
+            self.add_btn.configure(state="disabled")
         self.menu_bar.display()
         self.pack(pady=10, padx=10, fill="both", expand=True)
-        if self.controller.passwords_dec_data:
-            self.fill_table(self.controller.passwords_dec_data)
+        self.clear_data()
+        self.fill_table(self.controller.passwords_dec_data)
 
     def fill_table(self, data: list[PasswordRecord]):
         for i, row in enumerate(data):
@@ -423,8 +519,8 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
                 row.tag,
                 row.url,
                 row.notes,
-                row.pass_mdate,
-                row.record_mdate,
+                TimeOracle.get_readable_time(row.pass_mdate),
+                TimeOracle.get_readable_time(row.record_mdate),
                 row.id,
             ]
             self.data_tree.insert("", "end", values=table_row)
@@ -459,11 +555,17 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
             context_menu.add_command(
                 label="Copy", command=lambda: self.copy_text(clicked_text)
             )
+            context_menu.add_command(
+                label="Delete", command=lambda: self.delete_record(record_values[-1])
+            )
             context_menu.post(event.x_root, event.y_root)  # close the context_menu
 
     def copy_text(self, text):
         self.data_tree.clipboard_clear()
         self.data_tree.clipboard_append(text)
+
+    def delete_record(self, record_id):
+        self.controller.passwords_controller.delete_record(int(record_id))
 
     def add_btn_com(self):
         record_window = RecordsWindow(
@@ -484,7 +586,7 @@ class Secret(ctk.CTk):
         # ---------- data ----------
         self.master_key = None
         self.passwords_file_path = None
-        self.passwords_dec_data = None
+        self.passwords_dec_data = []
         # --------------------------
 
         # ---------- frames ----------
@@ -513,24 +615,42 @@ class Secret(ctk.CTk):
     def pick_file(self):
         # TODO: file type should be changed to a specific type
         self.passwords_file_path = filedialog.askopenfilename(
-            title="Open File", filetypes=[("All files", "*.*")], initialdir="./"
+            title="Open File",
+            filetypes=[("All files", "*.secretpass*")],
+            initialdir="./",
         )
 
+    def save_path(self):
+        self.passwords_file_path = filedialog.asksaveasfilename(
+            title="Choose Destination",
+            filetypes=[("All files", "*.secretpass*")],
+            initialdir="./",
+        )
+        self.passwords_controller.create_file(self.master_key, self.passwords_file_path)
+
     def add_record(self, record):
-        pass
+        self.passwords_controller.add_record(
+            record[0], record[1], record[2], record[3], record[4]
+        )
 
     def edit_record(self, record, record_id):
-        pass
+        self.passwords_controller.modify_record(
+            int(record_id), record[0], record[1], record[2], record[3], record[4]
+        )
 
     def check_MK(self, master_key):
         self.master_key = master_key
-        # result = self.passwords_controller.decrypt_file(master_key, self.passwords_file_path)
-        # return result
-        return True
+        result = self.passwords_controller.open_file(
+            master_key, self.passwords_file_path
+        )
+        return result
 
     def update_data(self, new_data):
         self.passwords_dec_data = new_data
         self.passwords_display_frame.display()
+
+    def set_passwords_controller(self, controller):
+        self.passwords_controller = controller
 
 
 if __name__ == "__main__":
