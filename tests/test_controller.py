@@ -2,11 +2,13 @@ import os
 from src.controller.controller import Controller
 from src.model.passwords_model import PasswordsModel
 from src.utils import TimeOracle
+from src.view.view import Secret
 
 
 class TestController:
     time_oracle = TimeOracle()
     model = PasswordsModel(time_oracle)
+    model.set_passwords_view(Secret())
     controller = Controller()
     controller.set_model(model)
     success_tests = [

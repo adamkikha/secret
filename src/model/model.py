@@ -40,11 +40,13 @@ class Model:
     def add_record(self, record: Record):
         self.records.append(record)
         self.next_id += 1
+        self.view.update_data(self.get_records())
 
     def delete_record(self, id: int):
         for index in range(len(self.records)):
             if self.records[index].id == id:
                 self.records.pop(index)
+                self.view.update_data(self.get_records())
                 return True
         return None
 

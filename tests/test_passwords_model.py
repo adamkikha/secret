@@ -5,11 +5,13 @@ from src.model.passwords_model import PasswordsModel
 from src.model.password_record import PasswordRecord
 from src.utils import TimeOracle
 from copy import copy
+from src.view.view import Secret
 
 
 class Test_PasswordsModel:
     time_oracle = TimeOracle()
     passwords_model = PasswordsModel(time_oracle)
+    passwords_model.set_passwords_view(Secret())
 
     def test_records(self):
         self.passwords_model.initialize("test1.secretpass", create=True)

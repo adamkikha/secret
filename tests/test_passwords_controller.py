@@ -3,12 +3,14 @@ from src.model.passwords_model import PasswordsModel
 from src.utils import TimeOracle
 from copy import copy
 import os
+from src.view.view import Secret
 
 
 def test_passwords_controller():
     pass_controller = PasswordsController()
     time_oracle = TimeOracle()
     pass_controller.set_model(PasswordsModel(time_oracle))
+    pass_controller.model.set_passwords_view(Secret())
     pass_controller.model.initialize("test.secretpass", True)
     tests = [
         (0, "a", "1", "t", "n.com", "a1b2c3", time_oracle.get_current_time()),

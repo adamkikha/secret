@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 import customtkinter as ctk
+from src.model.password_record import PasswordRecord
 
 
 class InitFrame(ctk.CTkFrame):
@@ -413,9 +414,20 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
         if self.controller.passwords_dec_data:
             self.fill_table(self.controller.passwords_dec_data)
 
-    def fill_table(self, data):
+    def fill_table(self, data: list[PasswordRecord]):
         for i, row in enumerate(data):
-            self.data_tree.insert("", "end", values=[str(i + 1)] + row)
+            table_row = [
+                str(i + 1),
+                row.username,
+                row.password,
+                row.tag,
+                row.url,
+                row.notes,
+                row.pass_mdate,
+                row.record_mdate,
+                row.id,
+            ]
+            self.data_tree.insert("", "end", values=table_row)
 
     def clear_data(self):
         for item_id in self.data_tree.get_children():
@@ -475,7 +487,6 @@ class Secret(ctk.CTk):
         self.passwords_dec_data = None
         # --------------------------
 
-
         # ---------- frames ----------
         # initial window
         self.init_frame = InitFrame(self)
@@ -516,11 +527,10 @@ class Secret(ctk.CTk):
         # result = self.passwords_controller.decrypt_file(master_key, self.passwords_file_path)
         # return result
         return True
-    
-    def update_data(self,new_data):
+
+    def update_data(self, new_data):
         self.passwords_dec_data = new_data
         self.passwords_display_frame.display()
-        
 
 
 if __name__ == "__main__":

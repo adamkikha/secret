@@ -27,6 +27,7 @@ class PasswordsModel(Model):
             record.set_pass_mdate(date)
         if modified:
             record.set_mdate(date)
+            self.view.update_data(self.get_records())
 
     def set_passwords_view(self, view):
-        self.passwords_view = view
+        self.view = view
