@@ -3,6 +3,20 @@ from src.model.password_record import PasswordRecord
 
 
 class PasswordsModel(Model):
+    def add_pass_record(
+        self, username: str, password: str, tag: str, url: str, notes: str
+    ):
+        record = PasswordRecord(
+            self.next_id,
+            username,
+            password,
+            tag,
+            url,
+            notes,
+            self.time_oracle.get_current_time(),
+        )
+        self.__add_record__(record)
+
     def modify_pass_record(
         self, id: int, username: str, password: str, tag: str, url: str, notes: str
     ):

@@ -13,7 +13,7 @@ def test_passwords_controller():
     pass_controller.model.set_passwords_view(Secret())
     pass_controller.model.initialize("test.secretpass", True)
     tests = [
-        (0, "a", "1", "t", "n.com", "a1b2c3", time_oracle.get_current_time()),
+        (0, "a", "1", "t", "n.com", "a1b2c3"),
         (
             1,
             "b",
@@ -21,26 +21,9 @@ def test_passwords_controller():
             "a",
             "e.net",
             "testtest",
-            time_oracle.get_current_time(),
         ),
-        (
-            2,
-            "c",
-            "3",
-            "g",
-            "s.net",
-            "lorem ipsum",
-            time_oracle.get_current_time(),
-        ),
-        (
-            3,
-            "d",
-            "4",
-            "s",
-            "w.net",
-            "@#u9nrf$M",
-            time_oracle.get_current_time(),
-        ),
+        (2, "c", "3", "g", "s.net", "lorem ipsum"),
+        (3, "d", "4", "s", "w.net", "@#u9nrf$M"),
     ]
 
     # add records

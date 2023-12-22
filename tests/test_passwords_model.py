@@ -16,25 +16,9 @@ class Test_PasswordsModel:
     def test_records(self):
         self.passwords_model.initialize("test1.secretpass", create=True)
         tests = [
-            (0, "a", "1", "t", "n.com", "a1b2c3", self.time_oracle.get_current_time()),
-            (
-                1,
-                "b",
-                "2",
-                "a",
-                "e.net",
-                "testtest",
-                self.time_oracle.get_current_time(),
-            ),
-            (
-                2,
-                "c",
-                "3",
-                "g",
-                "s.net",
-                "lorem ipsum",
-                self.time_oracle.get_current_time(),
-            ),
+            (0, "a", "1", "t", "n.com", "a1b2c3"),
+            (1, "b", "2", "a", "e.net", "testtest"),
+            (2, "c", "3", "g", "s.net", "lorem ipsum"),
             (
                 3,
                 "d",
@@ -42,28 +26,23 @@ class Test_PasswordsModel:
                 "s",
                 "w.net",
                 "@#u9nrf$M",
-                self.time_oracle.get_current_time(),
             ),
         ]
 
-        test_records = []
-        for test in tests:
-            test_records.append(PasswordRecord(*test))
-
-        print(test_records)
         # add records
-        for record in test_records:
+        for record in tests:
             counter = self.passwords_model.next_id
             length = len(self.passwords_model.get_records())
-            self.passwords_model.add_record(record)
+            self.passwords_model.add_pass_record(*record[1:6])
             assert self.passwords_model.next_id == counter + 1 == length + 1
-            assert self.passwords_model.get_records()[length].id == record.id
+            assert self.passwords_model.get_records()[length].id == record[0]
 
         # get records
-        for record in test_records:
-            assert self.passwords_model.get_record(record.id) is record
+        for record in tests:
+            assert self.passwords_model.get_record(record[0]).id == record[0]
 
         # modify records
+        test_records = self.passwords_model.get_records()
         copy_test_records = test_records.copy()
 
         old_record, new_record = test_records[1], copy_test_records[2]
@@ -127,27 +106,19 @@ class Test_PasswordsModel:
 
     def test_files(self):
         self.passwords_model.initialize("test1.secretpass", create=True)
-        self.passwords_model.add_record(
-            PasswordRecord(
-                self.passwords_model.next_id,
-                "a",
-                "1",
-                "t",
-                "n.com",
-                "a1b2c3",
-                self.time_oracle.get_current_time(),
-            )
+        self.passwords_model.add_pass_record(
+            "a",
+            "1",
+            "t",
+            "n.com",
+            "a1b2c3",
         )
-        self.passwords_model.add_record(
-            PasswordRecord(
-                self.passwords_model.next_id,
-                "b",
-                "2",
-                "a",
-                "e.net",
-                "testtest",
-                self.time_oracle.get_current_time(),
-            )
+        self.passwords_model.add_pass_record(
+            "b",
+            "2",
+            "a",
+            "e.net",
+            "testtest",
         )
         records = self.passwords_model.get_records()
         next_id = self.passwords_model.next_id

@@ -4,16 +4,7 @@ from src.model.password_record import PasswordRecord
 
 class PasswordsController(Controller):
     def add_record(self, username: str, password: str, tag: str, url: str, notes: str):
-        record = PasswordRecord(
-            self.model.next_id,
-            username,
-            password,
-            tag,
-            url,
-            notes,
-            self.model.time_oracle.get_current_time(),
-        )
-        self.model.add_record(record)
+        self.model.add_pass_record(username, password, tag, url, notes)
 
     def delete_record(self, id: int):
         return self.model.delete_record(id) == True

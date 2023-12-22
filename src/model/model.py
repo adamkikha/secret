@@ -37,7 +37,7 @@ class Model:
                 return record
         return None
 
-    def add_record(self, record: Record):
+    def __add_record__(self, record: Record):
         self.records.append(record)
         self.next_id += 1
         self.view.update_data(self.get_records())
