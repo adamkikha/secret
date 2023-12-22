@@ -1,61 +1,32 @@
-import pickle
-from src.model.record import Record
-from src.utils import TimeOracle
+from src.model.model import Model
+from src.model.password_record import PasswordRecord
 
 
-class PasswordsModel:
-    def __init__(self, time_oracle: TimeOracle):
-        self.time_oracle: TimeOracle = time_oracle
-        self.records: list[Record] = []
-        self.next_id: int = 0
-        self.path: str = ""
+class PasswordsModel(Model):
+    def modify_pass_record(
+        self, id: int, username: str, password: str, tag: str, url: str, notes: str
+    ):
+        modified = False
+        record: PasswordRecord = self.get_record(id)
+        if record.username != username:
+            modified = True
+            record.set_username(username)
+        if record.tag != tag:
+            modified = True
+            record.set_tag(tag)
+        if record.url != url:
+            modified = True
+            record.set_url(url)
+        if record.notes != notes:
+            modified = True
+            record.set_notes(notes)
+        date = self.time_oracle.get_current_time()
+        if record.password != password:
+            modified = True
+            record.set_password(password)
+            record.set_pass_mdate(date)
+        if modified:
+            record.set_mdate(date)
 
-    def initialize(self, path: str, create: bool):
-        self.path = path
-        self.records = []
-        self.next_id = 0
-
-        if create is True:
-            # create a new file and close it
-            open(path, "x").close()
-        else:
-            with open(path, "rb") as file:
-                self.ciphertext, self.tag, self.nonce, self.salt = pickle.loads(
-                    file.read()
-                )
-
-    def construct_records(self, plaintext: bytes):
-        self.records, self.next_id = pickle.loads(plaintext)
-
-    def get_records(self):
-        return self.records
-
-    def get_record(self, id: int):
-        for record in self.records:
-            if record.id == id:
-                return record
-        return None
-
-    def add_record(self, record: Record):
-        self.records.append(record)
-        self.next_id += 1
-
-    def delete_record(self, id: int):
-        for index in range(len(self.records)):
-            if self.records[index].id == id:
-                self.records.pop(index)
-                return True
-        return None
-
-    def serialize_records(self):
-        return pickle.dumps((self.records, self.next_id))
-
-    def save_file(self, ciphertext: bytes, tag: bytes, nonce: bytes, salt: bytes):
-        file_data = pickle.dumps((ciphertext, tag, nonce, salt))
-        with open(self.path, "wb") as file:
-            file.write(file_data)
-
-    def close_file(self):
-        self.path = ""
-        self.records = []
-        self.next_id = 0
+    def set_passwords_view(self, view):
+        self.passwords_view = view
