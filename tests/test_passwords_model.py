@@ -2,7 +2,6 @@ import os
 import pickle
 import pytest
 from src.model.passwords_model import PasswordsModel
-from src.model.password_record import PasswordRecord
 from src.utils import TimeOracle
 from copy import copy
 from src.view.view import Secret
@@ -120,7 +119,7 @@ class Test_PasswordsModel:
             "e.net",
             "testtest",
         )
-        records = self.passwords_model.get_records()
+        records = self.passwords_model.get_records().copy()
         next_id = self.passwords_model.next_id
         # serialize , save file and load
         self.passwords_model.save_file(
