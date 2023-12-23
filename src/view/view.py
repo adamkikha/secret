@@ -395,6 +395,16 @@ class PassMenuBar(tk.Menu):
         )
         if not self.controller.passwords_file_path:
             self.controller.pick_file()
+            if not self.controller.passwords_file_path:  # user didn't pick file
+                self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                    "Open", state="normal"
+                )
+                self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                    "New", state="normal"
+                )
+                self.pack_forget()
+                self.controller.passwords_display_frame.display()
+                return
 
         self.controller.config(menu="")
         self.frame.pack_forget()
