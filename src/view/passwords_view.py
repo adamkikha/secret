@@ -6,7 +6,6 @@ from src.utils import TimeOracle
 from src.model.password_record import PasswordRecord
 
 
-
 class RecordsWindow(ctk.CTkToplevel):
     """frame used for add, view, and edit the records"""
 
@@ -20,9 +19,9 @@ class RecordsWindow(ctk.CTkToplevel):
             "Username", "password", "Tag", "URL", "Notes", "password modification date","Record modification date", "ID"
         """
         ctk.CTkToplevel.__init__(self)
-
         self.title("View")
         self.set_geometry(600, 550)
+        self.wait_visibility()
         self.grab_set()
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -291,7 +290,9 @@ class PassMenuBar(tk.Menu):
         super().__init__(controller.view_controller)
         self.controller = controller
         self.frame = frame
-        self.menubar = tk.Menu(controller.view_controller, font=("Trebuchet MS", 100, "bold"))
+        self.menubar = tk.Menu(
+            controller.view_controller, font=("Trebuchet MS", 9, "bold")
+        )
         self.file_menu = tk.Menu(self.menubar, tearoff=False)
         self.file_menu.add_command(
             label="New", accelerator="Ctrl+N", command=self.new_file_clicked
@@ -396,9 +397,9 @@ class PassMenuBar(tk.Menu):
         self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
             "Save", state="disabled"
         )
-        self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
-            "Close", state="disabled"
-        )
+        # self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+        #     "Close", state="disabled"
+        # )
         self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
             "Open", state="normal"
         )
@@ -429,7 +430,7 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
             "Record modification date",
         ]
 
-        self.headers_size = (10, 150, 200, 50, 220)
+        self.headers_size = (10, 150, 180, 50, 250)
         self.center_header_indeces = [0, 3]
         # ---------- widgets ----------
         # Add button
@@ -469,6 +470,9 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
                 self.data_tree.column(col, width=self.headers_size[i])
 
     def display(self):
+        self.pass_view_controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+            "Close", state="normal"
+        )
         if self.pass_view_controller.master_key:
             self.add_btn.configure(state="normal")
         else:
@@ -504,7 +508,9 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
 
     def view_record(self, record_values, record_inter_id):
         record_window = RecordsWindow(
-            self.pass_view_controller, self.data_tree, self.headers + self.hidden_headers
+            self.pass_view_controller,
+            self.data_tree,
+            self.headers + self.hidden_headers,
         )
         record_window.view_record(record_values, record_inter_id)
         # for header, value in zip(self.headers, record_values):
@@ -537,13 +543,14 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
 
     def add_btn_com(self):
         record_window = RecordsWindow(
-            self.pass_view_controller, self.data_tree, self.headers + self.hidden_headers
+            self.pass_view_controller,
+            self.data_tree,
+            self.headers + self.hidden_headers,
         )
 
 
 class PasswordsView:
     def __init__(self, view_controller):
-
         self.view_controller = view_controller
         self.passwords_controller = None
 
@@ -560,18 +567,17 @@ class PasswordsView:
         self.passwords_display_frame = PasswordsDisplayFrame(self)
         # --------------------------------
 
-
     def pick_file(self):
         self.passwords_file_path = filedialog.askopenfilename(
             title="Open File",
-            filetypes=[("All files", "*.secretpass*")],
+            filetypes=[("All files", "*.pass*")],
             initialdir="./",
         )
 
     def save_path(self):
         self.passwords_file_path = filedialog.asksaveasfilename(
             title="Choose Destination",
-            filetypes=[("All files", "*.secretpass*")],
+            filetypes=[("All files", "*.pass*")],
             initialdir="./",
         )
         self.passwords_controller.create_file(self.master_key, self.passwords_file_path)
@@ -592,13 +598,10 @@ class PasswordsView:
             master_key, self.passwords_file_path
         )
         return result
-    
-    
+
     def view_passwords(self):
         self.passwords_display_frame.display()
-        
-        
+
     def update_data(self, new_data):
         self.passwords_dec_data = new_data
         self.passwords_display_frame.display()
-
