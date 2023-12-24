@@ -3,13 +3,14 @@ import pickle
 import pytest
 from src.model.container_model import ContainerModel
 from src.utils import TimeOracle
+from src.view.view import View
 from src.view.container_view import ContainerView
 
 
 class Test_ContainerModel:
     time_oracle = TimeOracle()
     container_model = ContainerModel(time_oracle)
-    container_model.set_container_view(ContainerView())
+    container_model.set_container_view(ContainerView(View()))
 
     def test_records(self):
         self.container_model.initialize("test.secretcont", create=True)
