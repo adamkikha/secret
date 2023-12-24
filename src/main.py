@@ -1,7 +1,7 @@
 from src.utils import TimeOracle
 from src.model.passwords_model import PasswordsModel
 from src.controller.passwords_controller import PasswordsController
-from src.view.view import Secret
+from src.view.view import View
 
 
 if __name__ == "__main__":
@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     passwords_model = PasswordsModel(time_oracle)
     passwords_controller = PasswordsController()
-    view = Secret()
+    view = View()
 
     passwords_model.set_passwords_view(view.passwords_view)
     passwords_controller.set_passwords_model(passwords_model)
