@@ -6,7 +6,7 @@ import os
 from src.view.view import View
 
 
-class TestController:
+class Test_PasswordsController:
     time_oracle = TimeOracle()
     model = PasswordsModel(time_oracle)
     model.set_passwords_view(View().passwords_view)
