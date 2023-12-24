@@ -4,6 +4,7 @@ import pytest
 from src.model.container_model import ContainerModel
 from src.utils import TimeOracle
 from src.view.view import View
+from copy import copy
 from src.view.container_view import ContainerView
 
 
@@ -47,6 +48,48 @@ class Test_ContainerModel:
                 ].id
                 == record[0]
             )
+
+        # modify records
+        test_records = self.container_model.get_records()
+        copy_test_records = test_records.copy()
+
+        old_record, new_record = test_records[1], copy_test_records[2]
+        original_record = copy(old_record)
+        self.container_model.modify_file_record(
+            old_record.id,
+            new_record.name,
+            old_record.tag,
+            old_record.notes,
+        )
+        assert old_record.record_mdate != original_record.record_mdate
+        assert old_record.name == new_record.name
+        assert old_record.tag == original_record.tag
+        assert old_record.notes == original_record.notes
+
+        old_record, new_record = test_records[2], copy_test_records[3]
+        original_record = copy(old_record)
+        self.container_model.modify_file_record(
+            old_record.id,
+            old_record.name,
+            old_record.tag,
+            old_record.notes,
+        )
+        assert old_record.record_mdate == original_record.record_mdate
+        assert old_record.name == original_record.name
+        assert old_record.tag == original_record.tag
+        assert old_record.notes == original_record.notes
+
+        old_record, new_record = test_records[0], copy_test_records[1]
+        self.container_model.modify_file_record(
+            old_record.id,
+            new_record.name,
+            new_record.tag,
+            new_record.notes,
+        )
+        assert old_record.record_mdate != original_record.record_mdate
+        assert old_record.name == new_record.name
+        assert old_record.tag == new_record.tag
+        assert old_record.notes == new_record.notes
 
         # delete records
         for record in tests:
@@ -140,7 +183,7 @@ class Test_ContainerModel:
 
         # initiation
         with pytest.raises(FileNotFoundError):
-            self.container_model.initialize("test2.secretpass", create=False)
+            self.container_model.initialize("test2.secretcont", create=False)
 
         # check overwrite
         self.container_model.initialize("test.secretcont", create=True)
