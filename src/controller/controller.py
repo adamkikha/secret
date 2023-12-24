@@ -63,3 +63,6 @@ class Controller:
         self.derived_key = None
         self.file_path = None
         self.model.close_file()
+
+    def delete_record(self, id: int):
+        return self.model.delete_record(id) == True
