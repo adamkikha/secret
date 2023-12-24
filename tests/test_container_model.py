@@ -14,7 +14,7 @@ class Test_ContainerModel:
     container_model.set_container_view(ContainerView(View()))
 
     def test_records(self):
-        self.container_model.initialize("test.secretcont", create=True)
+        self.container_model.initialize("test.cont", create=True)
         open("a", "x").close()
         open("b", "x").close()
         open("c", "x").close()
@@ -106,7 +106,7 @@ class Test_ContainerModel:
                 == length - 1
             )
 
-        os.remove("test.secretcont")
+        os.remove("test.cont")
         os.remove("a")
         os.remove("b")
         os.remove("c")
@@ -126,7 +126,7 @@ class Test_ContainerModel:
                 "testtest",
             ),
         ]
-        self.container_model.initialize("test.secretcont", create=True)
+        self.container_model.initialize("test.cont", create=True)
         for test in tests:
             with open(test[1], "w") as test_file:
                 test_file.write(test[0])
@@ -144,7 +144,7 @@ class Test_ContainerModel:
             b"\x12\x34",
             b"\x01\xAB",
         )
-        self.container_model.initialize("test.secretcont", create=False)
+        self.container_model.initialize("test.cont", create=False)
         assert self.container_model.tag == b"\x55\x55"
         assert self.container_model.nonce == b"\x12\x34"
         assert self.container_model.salt == b"\x01\xAB"
@@ -170,7 +170,7 @@ class Test_ContainerModel:
 
         # export decrypted file
         for record in self.container_model.get_records():
-            self.container_model.export_decrypted_file(record.id, record.name)
+            self.container_model.export_decrypted_file(record.id, os.getcwd())
             with open(record.name, "r") as test_file:
                 assert (
                     test_file.read()
@@ -186,11 +186,11 @@ class Test_ContainerModel:
 
         # initiation
         with pytest.raises(FileNotFoundError):
-            self.container_model.initialize("test2.secretcont", create=False)
+            self.container_model.initialize("test2.cont", create=False)
 
         # check overwrite
-        self.container_model.initialize("test.secretcont", create=True)
+        self.container_model.initialize("test.cont", create=True)
 
-        os.remove("test.secretcont")
+        os.remove("test.cont")
         os.remove("a")
         os.remove("b")

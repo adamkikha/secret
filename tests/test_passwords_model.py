@@ -13,7 +13,7 @@ class Test_PasswordsModel:
     passwords_model.set_passwords_view(View().passwords_view)
 
     def test_records(self):
-        self.passwords_model.initialize("test1.secretpass", create=True)
+        self.passwords_model.initialize("test1.pass", create=True)
         tests = [
             (0, "a", "1", "t", "n.com", "a1b2c3"),
             (1, "b", "2", "a", "e.net", "testtest"),
@@ -104,10 +104,10 @@ class Test_PasswordsModel:
             assert self.passwords_model.get_record(record.id) is None
             assert len(self.passwords_model.get_records()) == length - 1
 
-        os.remove("test1.secretpass")
+        os.remove("test1.pass")
 
     def test_files(self):
-        self.passwords_model.initialize("test1.secretpass", create=True)
+        self.passwords_model.initialize("test1.pass", create=True)
         self.passwords_model.add_pass_record(
             "a",
             "1",
@@ -131,7 +131,7 @@ class Test_PasswordsModel:
             b"\x12\x34",
             b"\x01\xAB",
         )
-        self.passwords_model.initialize("test1.secretpass", create=False)
+        self.passwords_model.initialize("test1.pass", create=False)
         assert self.passwords_model.tag == b"\x55\x55"
         assert self.passwords_model.nonce == b"\x12\x34"
         assert self.passwords_model.salt == b"\x01\xAB"
@@ -159,9 +159,9 @@ class Test_PasswordsModel:
 
         # initiation
         with pytest.raises(FileNotFoundError):
-            self.passwords_model.initialize("test2.secretpass", create=False)
+            self.passwords_model.initialize("test2.pass", create=False)
 
         # check overwrite
-        self.passwords_model.initialize("test1.secretpass", create=True)
+        self.passwords_model.initialize("test1.pass", create=True)
 
-        os.remove("test1.secretpass")
+        os.remove("test1.pass")

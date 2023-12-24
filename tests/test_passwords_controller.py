@@ -13,13 +13,13 @@ class Test_PasswordsController:
     pass_controller = PasswordsController()
     pass_controller.set_passwords_model(model)
     success_tests = [
-        ("pass123", "test1.secretpass"),
-        ("rockyou", "test2.secretpass"),
+        ("pass123", "test1.pass"),
+        ("rockyou", "test2.pass"),
     ]
     fail_tests = [
-        ("wrongpass", "test1.secretpass"),
-        ("yourock", "test2.secretpass"),
-        ("pass123", "test3.secretpass"),
+        ("wrongpass", "test1.pass"),
+        ("yourock", "test2.pass"),
+        ("pass123", "test3.pass"),
     ]
 
     def test_create_file(self, clean_up=True):

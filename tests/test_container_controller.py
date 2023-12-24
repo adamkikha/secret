@@ -13,13 +13,13 @@ class Test_ContainerController:
     cont_controller = ContainerController()
     cont_controller.set_container_model(model)
     success_tests = [
-        ("pass123", "test1.secretcont"),
-        ("rockyou", "test2.secretcont"),
+        ("pass123", "test1.cont"),
+        ("rockyou", "test2.cont"),
     ]
     fail_tests = [
-        ("wrongpass", "test1.secretcont"),
-        ("yourock", "test2.secretcont"),
-        ("pass123", "test3.secretcont"),
+        ("wrongpass", "test1.cont"),
+        ("yourock", "test2.cont"),
+        ("pass123", "test3.cont"),
     ]
 
     def test_create_file(self, clean_up=True):
