@@ -45,6 +45,23 @@ class ContainerModel(Model):
         self.file_data.append(file_data)
         super().__add_record__(record)
 
+    def modify_file_record(self, id: int, name: str, tag: str, notes: str):
+        modified = False
+        record: FileRecord = self.get_record(id)
+        if record.name != name:
+            modified = True
+            record.set_name(name)
+        if record.tag != tag:
+            modified = True
+            record.set_tag(tag)
+        if record.notes != notes:
+            modified = True
+            record.set_notes(notes)
+        date = self.time_oracle.get_current_time()
+        if modified:
+            record.set_mdate(date)
+            self.view.update_data(self.get_records())
+
     def delete_record(self, id: int):
         self.file_data.pop(self.__get_file_index__(id))
         return super().delete_record(id)
