@@ -46,7 +46,7 @@ class InitFrame(ctk.CTkFrame):
 
     def container_btn_function(self):
         self.pack_forget()
-        self.controller.files_view.view_container()
+        self.controller.container_view.view_container()
 
 
 class View(ctk.CTk):
@@ -70,7 +70,7 @@ class View(ctk.CTk):
         # passwords
         self.passwords_view = PasswordsView(self)
         # files container
-        self.files_view = ContainerView(self)
+        self.container_view = ContainerView(self)
         # --------------------------------
 
         self.init_frame.display()
@@ -89,8 +89,7 @@ class View(ctk.CTk):
         self.passwords_view.passwords_controller = controller
 
     def set_container_controller(self, controller):
-        # self.files_view. = controller
-        pass
+        self.container_view.container_controller = controller
 
 
 if __name__ == "__main__":
