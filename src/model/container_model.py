@@ -1,7 +1,7 @@
 from src.model.model import Model
 from src.model.file_record import FileRecord
 import pickle
-
+import os
 
 class ContainerModel(Model):
     def __init__(self, time_oracle):
@@ -25,7 +25,9 @@ class ContainerModel(Model):
 
     def export_decrypted_file(self, id: int, path: str):
         file_index = self.__get_file_index__(id)
-        with open(path, "wb") as file:
+        record = self.get_record(id)
+        file_path = os.path.join(path, record.name)
+        with open(file_path, "wb") as file:
             file.write(self.file_data[file_index])
 
     def set_container_view(self, view):
