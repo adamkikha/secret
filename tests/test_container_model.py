@@ -61,10 +61,11 @@ class Test_ContainerModel:
             old_record.tag,
             old_record.notes,
         )
-        assert old_record.record_mdate != original_record.record_mdate
+        assert old_record.record_mdate > original_record.record_mdate
         assert old_record.name == new_record.name
         assert old_record.tag == original_record.tag
         assert old_record.notes == original_record.notes
+        assert old_record.size == original_record.size
 
         old_record, new_record = test_records[2], copy_test_records[3]
         original_record = copy(old_record)
@@ -78,6 +79,7 @@ class Test_ContainerModel:
         assert old_record.name == original_record.name
         assert old_record.tag == original_record.tag
         assert old_record.notes == original_record.notes
+        assert old_record.size == original_record.size
 
         old_record, new_record = test_records[0], copy_test_records[1]
         self.container_model.modify_file_record(
@@ -90,6 +92,7 @@ class Test_ContainerModel:
         assert old_record.name == new_record.name
         assert old_record.tag == new_record.tag
         assert old_record.notes == new_record.notes
+        assert old_record.size == original_record.size
 
         # delete records
         for record in tests:

@@ -54,7 +54,7 @@ class Test_PasswordsModel:
             old_record.url,
             old_record.notes,
         )
-        assert old_record.record_mdate != original_record.record_mdate
+        assert old_record.record_mdate > original_record.record_mdate
         assert old_record.pass_mdate == original_record.pass_mdate
         assert old_record.username == new_record.username
         assert old_record.password == original_record.password
@@ -89,8 +89,8 @@ class Test_PasswordsModel:
             new_record.url,
             new_record.notes,
         )
-        assert old_record.record_mdate != original_record.record_mdate
-        assert old_record.pass_mdate != original_record.pass_mdate
+        assert old_record.record_mdate > original_record.record_mdate
+        assert old_record.pass_mdate > original_record.pass_mdate
         assert old_record.username == new_record.username
         assert old_record.password == new_record.password
         assert old_record.tag == new_record.tag
