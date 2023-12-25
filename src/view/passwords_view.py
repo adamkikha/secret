@@ -208,7 +208,6 @@ class PassMKFrame(ctk.CTkFrame):
         if self.new_MK:
             self.controller.master_key = self.mk_ent.get()
             self.controller.save_path()
-            self.controller.passwords_display_frame.display()
             self.pop_up_window("Key set successfully!!", "green", "Success!")
             self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
                 "Lock", state="normal"
@@ -220,11 +219,11 @@ class PassMKFrame(ctk.CTkFrame):
                 "Save", state="normal"
             )
             self.pack_forget()
+            self.controller.passwords_display_frame.display()
         else:
             result = self.controller.check_MK(self.mk_ent.get())
             if result:
                 self.pop_up_window("File opened successfully!!", "green", "Success!")
-                self.controller.passwords_display_frame.display()
                 self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
                     "Lock", state="normal"
                 )
@@ -241,6 +240,7 @@ class PassMKFrame(ctk.CTkFrame):
                     "New", state="disabled"
                 )
                 self.pack_forget()
+                self.controller.passwords_display_frame.display()
             else:
                 self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
                     "Open", state="normal"
@@ -472,14 +472,12 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
     def display(self):
         self.clear_data()
         self.fill_table(self.pass_view_controller.passwords_dec_data)
-        print("before if")
         if (
             not self.pass_view_controller.view_controller.init_frame.passwords_btn.winfo_ismapped()
             and not self.pass_view_controller.master_key_frame.confirm_btn.winfo_ismapped()
             and not self.pass_view_controller.view_controller.container_view.container_display_frame.add_btn.winfo_ismapped()
             and not self.pass_view_controller.view_controller.container_view.master_key_frame.confirm_btn.winfo_ismapped()
         ):
-            print("inside if")
             self.pass_view_controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
                 "Close", state="normal"
             )
