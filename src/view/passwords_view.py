@@ -470,17 +470,27 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
                 self.data_tree.column(col, width=self.headers_size[i])
 
     def display(self):
-        self.pass_view_controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
-            "Close", state="normal"
-        )
-        if self.pass_view_controller.master_key:
-            self.add_btn.configure(state="normal")
-        else:
-            self.add_btn.configure(state="disabled")
-        self.menu_bar.display()
-        self.pack(pady=10, padx=10, fill="both", expand=True)
         self.clear_data()
         self.fill_table(self.pass_view_controller.passwords_dec_data)
+        print("before if")
+        if (
+            not self.pass_view_controller.view_controller.init_frame.passwords_btn.winfo_ismapped()
+            and not self.pass_view_controller.master_key_frame.confirm_btn.winfo_ismapped()
+            and not self.pass_view_controller.view_controller.container_view.container_display_frame.add_btn.winfo_ismapped()
+            and not self.pass_view_controller.view_controller.container_view.master_key_frame.confirm_btn.winfo_ismapped()
+        ):
+            print("inside if")
+            self.pass_view_controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
+                "Close", state="normal"
+            )
+            if self.pass_view_controller.master_key:
+                self.add_btn.configure(state="normal")
+            else:
+                self.add_btn.configure(state="disabled")
+            self.menu_bar.display()
+            self.pack(pady=10, padx=10, fill="both", expand=True)
+            self.clear_data()
+            self.fill_table(self.pass_view_controller.passwords_dec_data)
 
     def fill_table(self, data: list[PasswordRecord]):
         for i, row in enumerate(data):
