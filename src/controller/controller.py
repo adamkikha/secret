@@ -1,5 +1,6 @@
 import os
 from src.controller.crypto import kdf, encrypt, decrypt
+from math import log2
 
 
 class Controller:
@@ -66,3 +67,9 @@ class Controller:
 
     def delete_record(self, id: int):
         return self.model.delete_record(id) == True
+
+    @staticmethod
+    def get_password_entropy(password: str):
+        char_set_len = len(set(password))
+        pass_len = len(password)
+        return pass_len * log2(char_set_len)
