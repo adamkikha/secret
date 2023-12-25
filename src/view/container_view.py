@@ -262,6 +262,7 @@ class PassMKFrame(ctk.CTkFrame):
     def back_btn_com(self):
         self.controller.container_display_frame.menu_bar.close_file_clicked(save=False)
         self.pack_forget()
+        self.mk_ent.delete(0, tk.END)
 
     def confirm_btn_com(self):
         if self.new_MK:

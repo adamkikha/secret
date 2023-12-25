@@ -200,6 +200,7 @@ class PassMKFrame(ctk.CTkFrame):
 
         # self.controller.passwords_display_frame.display()
         self.pack_forget()
+        self.mk_ent.delete(0, tk.END)
 
     def confirm_btn_com(self):
         # self.mk_ent.configure(placeholder_text="Master Key")
