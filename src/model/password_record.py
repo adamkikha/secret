@@ -17,6 +17,7 @@ class PasswordRecord(Record):
         self.password = password
         self.url = url
         self.pass_mdate = date
+        self.warn = False
 
     def set_username(self, username: str):
         self.username = username
@@ -29,3 +30,6 @@ class PasswordRecord(Record):
 
     def set_pass_mdate(self, date: float):
         self.pass_mdate = date
+
+    def set_warn(self, warn: bool):
+        self.warn = warn
