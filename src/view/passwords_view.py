@@ -453,7 +453,12 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
 
         # adding events to the data container
         self.data_tree.bind("<Double-1>", self.on_double_click_evt)
+        self.data_tree.bind("<Button-1>", self.on_left_click_evt)
         self.data_tree.bind("<Button-3>", self.on_right_click_evt)
+        self.add_btn.bind("<Button-1>", self.on_left_click_evt)
+        self.bind("<Button-1>", self.on_left_click_evt)
+
+        self.display_complete = tk.BooleanVar()
 
         # scroll bar
         self.scroll_bar = ctk.CTkScrollbar(
@@ -472,6 +477,17 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
                 self.data_tree.column(col, width=self.headers_size[i])
 
     def display(self):
+        self.display_complete.set(False)
+        self.after(0, self.delay_display)
+        while not self.display_complete.get():
+            self.update()
+
+    def delay_display(self):
+        # Save current selection
+        selected_ids = [
+            self.data_tree.item(item)["values"][-1]
+            for item in self.data_tree.selection()
+        ]
         self.clear_data()
         self.fill_table(self.pass_view_controller.passwords_dec_data)
         if (
@@ -491,6 +507,13 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
             self.pack(pady=10, padx=10, fill="both", expand=True)
             self.clear_data()
             self.fill_table(self.pass_view_controller.passwords_dec_data)
+
+        # Reselect previously selected items
+        for item in self.data_tree.get_children():
+            if self.data_tree.item(item)["values"][-1] in selected_ids:
+                self.data_tree.selection_add(item)
+
+        self.display_complete.set(True)
 
     def fill_table(self, data: list[PasswordRecord]):
         for i, row in enumerate(data):
@@ -527,7 +550,15 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
         #     label = ctk.CTkLabel(record_window, text=f"{header}: {value}")
         #     label.pack()
 
+    def on_left_click_evt(self, event):
+        # Check if context_menu already exists and unpost it
+        if hasattr(self, "context_menu"):
+            self.context_menu.unpost()
+
     def on_right_click_evt(self, event):
+        # Check if context_menu already exists and unpost it
+        if hasattr(self, "context_menu"):
+            self.context_menu.unpost()
         # Identify the item and column that were right-clicked
         record_inter_id = self.data_tree.identify_row(event.y)
         col_id = int(self.data_tree.identify_column(event.x).split("#")[1])
@@ -535,14 +566,14 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
             record_values = self.data_tree.item(record_inter_id, "values")
             clicked_text = record_values[col_id - 1]
 
-            context_menu = tk.Menu(self.data_tree, tearoff=0)
-            context_menu.add_command(
+            self.context_menu = tk.Menu(self.data_tree, tearoff=0)
+            self.context_menu.add_command(
                 label="Copy", command=lambda: self.copy_text(clicked_text)
             )
-            context_menu.add_command(
+            self.context_menu.add_command(
                 label="Delete", command=lambda: self.delete_record(record_values[-1])
             )
-            context_menu.post(event.x_root, event.y_root)  # close the context_menu
+            self.context_menu.post(event.x_root, event.y_root)
 
     def copy_text(self, text):
         self.data_tree.clipboard_clear()
