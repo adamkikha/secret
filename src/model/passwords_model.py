@@ -65,7 +65,7 @@ class PasswordsModel(Model):
     def set_saved_version_count_setting(self, setting: int):
         self.settings.saved_version_count = setting
         while len(self.saved_versions) + 1 > setting:
-            os.remove(self.saved_versions.pop(0))
+            self.saved_versions.pop(0)
         self.view.update_settings(self.settings)
 
     def set_lower_case_setting(self, setting: bool):
