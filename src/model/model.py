@@ -1,4 +1,5 @@
 import pickle
+import threading
 from src.model.record import Record
 from src.utils import TimeOracle
 
@@ -10,6 +11,7 @@ class Model:
         self.next_id: int = 0
         self.path: str = ""
         self.view = None
+        self.update_data_lock = threading.Lock()
 
     def initialize(self, path: str, create: bool):
         self.path = path
@@ -27,7 +29,7 @@ class Model:
 
     def construct_records(self, plaintext: bytes):
         self.records, self.next_id = pickle.loads(plaintext)
-        self.view.update_data(self.get_records())
+        self.update_data()
 
     def get_records(self):
         return self.records
@@ -41,13 +43,13 @@ class Model:
     def __add_record__(self, record: Record):
         self.records.append(record)
         self.next_id += 1
-        self.view.update_data(self.get_records())
+        self.update_data()
 
     def delete_record(self, id: int):
         for index in range(len(self.records)):
             if self.records[index].id == id:
                 self.records.pop(index)
-                self.view.update_data(self.get_records())
+                self.update_data()
                 return True
         return None
 
@@ -63,4 +65,8 @@ class Model:
         self.path = ""
         self.records = []
         self.next_id = 0
-        self.view.update_data(self.get_records())
+        self.update_data()
+
+    def update_data(self):
+        with self.update_data_lock:
+            self.view.update_data(self.get_records())
