@@ -82,9 +82,9 @@ class ContainerModel(Model):
             for index, record in enumerate(result):
                 if filter_list[0] and record.name != filter_list[0]:
                     result.pop(index)
-                if filter_list[1] and record.size < filter_list[1]:
+                if filter_list[1] and record.size < int(filter_list[1]):
                     result.pop(index)
-                if filter_list[2] and record.size > filter_list[2]:
+                if filter_list[2] and record.size > int(filter_list[2]):
                     result.pop(index)
                 if filter_list[3] and record.tag != filter_list[3]:
                     result.pop(index)
