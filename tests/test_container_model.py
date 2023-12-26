@@ -11,7 +11,7 @@ from src.view.container_view import ContainerView
 class Test_ContainerModel:
     time_oracle = TimeOracle()
     container_model = ContainerModel(time_oracle)
-    container_model.set_container_view(ContainerView(View()))
+    container_model.set_container_view(View().container_view)
 
     def test_records(self):
         self.container_model.initialize("test.cont", create=True)

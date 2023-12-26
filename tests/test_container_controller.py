@@ -9,7 +9,7 @@ from src.view.view import View, ContainerView
 class Test_ContainerController:
     time_oracle = TimeOracle()
     model = ContainerModel(time_oracle)
-    model.set_container_view(ContainerView(View()))
+    model.set_container_view(View().container_view)
     cont_controller = ContainerController()
     cont_controller.set_container_model(model)
     success_tests = [
