@@ -4,6 +4,7 @@ import customtkinter as ctk
 from tkinter import filedialog
 from src.utils import TimeOracle
 from src.model.password_record import PasswordRecord
+from src.model.password_settings import PasswordSettings
 
 
 class RecordsWindow(ctk.CTkToplevel):
@@ -614,3 +615,6 @@ class PasswordsView:
     def update_data(self, new_data):
         self.passwords_dec_data = new_data
         self.passwords_display_frame.display()
+
+    def update_settings(self, new_settings: PasswordSettings):
+        pass
