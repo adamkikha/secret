@@ -22,8 +22,7 @@ class TimeOracle:
 
         while True:
             time.sleep(60)
-            with self.model.update_data_lock:
-                try:
-                    self.model.update_data()
-                except RuntimeError:
-                    break
+            try:
+                self.model.update_data()
+            except RuntimeError:
+                break
