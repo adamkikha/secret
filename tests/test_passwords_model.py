@@ -1,5 +1,7 @@
 import os
 import pickle
+import time
+
 import pytest
 from src.model.passwords_model import PasswordsModel
 from src.utils import TimeOracle
@@ -10,6 +12,7 @@ from src.view.view import View
 class Test_PasswordsModel:
     time_oracle = TimeOracle()
     passwords_model = PasswordsModel(time_oracle)
+    time_oracle.set_model(passwords_model)
     passwords_model.set_passwords_view(View().passwords_view)
 
     def test_records(self):
@@ -123,6 +126,8 @@ class Test_PasswordsModel:
             "testtest",
         )
         records = self.passwords_model.get_records().copy()
+        settings = copy(self.passwords_model.settings)
+        saved_versions = self.passwords_model.saved_versions.copy()
         next_id = self.passwords_model.next_id
         # serialize , save file and load
         self.passwords_model.save_file(
@@ -135,12 +140,30 @@ class Test_PasswordsModel:
         assert self.passwords_model.tag == b"\x55\x55"
         assert self.passwords_model.nonce == b"\x12\x34"
         assert self.passwords_model.salt == b"\x01\xAB"
-        assert self.passwords_model.ciphertext == pickle.dumps((records, next_id))
+        assert self.passwords_model.ciphertext == pickle.dumps(
+            (records, settings, saved_versions, next_id)
+        )
 
         # construct records
         self.passwords_model.construct_records(self.passwords_model.ciphertext)
         assert self.passwords_model.next_id == next_id
         assert len(self.passwords_model.get_records()) == len(records)
+        for old_saved_version, new_saved_version in zip(
+            saved_versions, self.passwords_model.saved_versions
+        ):
+            assert old_saved_version == new_saved_version
+
+        old_settings = settings
+        new_settings = self.passwords_model.settings
+        assert old_settings.warn == new_settings.warn
+        assert old_settings.warn_age == new_settings.warn_age
+        assert old_settings.saved_version_count == new_settings.saved_version_count
+        assert old_settings.lower_case == new_settings.lower_case
+        assert old_settings.upper_case == new_settings.upper_case
+        assert old_settings.digits == new_settings.digits
+        assert old_settings.symbols == new_settings.symbols
+        assert old_settings.length == new_settings.length
+
         for old_record, new_record in zip(records, self.passwords_model.get_records()):
             assert old_record.id == new_record.id
             assert old_record.username == new_record.username
@@ -151,10 +174,82 @@ class Test_PasswordsModel:
             assert old_record.record_mdate == new_record.record_mdate
             assert old_record.pass_mdate == new_record.pass_mdate
 
+        # backups
+        old_dir = os.listdir()
+        self.passwords_model.set_saved_version_count_setting(1)
+        self.passwords_model.save_file(
+            pickle.dumps(
+                (
+                    self.passwords_model.records,
+                    self.passwords_model.settings,
+                    self.passwords_model.saved_versions,
+                    self.passwords_model.next_id,
+                )
+            ),
+            b"\x55\x55",
+            b"\x12\x34",
+            b"\x01\xAB",
+        )
+        assert old_dir == os.listdir()
+        assert len(self.passwords_model.saved_versions) == 0
+
+        self.passwords_model.set_saved_version_count_setting(3)
+        self.passwords_model.save_file(
+            pickle.dumps(
+                (
+                    records,
+                    self.passwords_model.settings,
+                    self.passwords_model.saved_versions,
+                    self.passwords_model.next_id,
+                )
+            ),
+            b"\x55\x55",
+            b"\x12\x34",
+            b"\x01\xAB",
+        )
+        time.sleep(1)
+        self.passwords_model.save_file(
+            pickle.dumps(
+                (
+                    records,
+                    self.passwords_model.settings,
+                    self.passwords_model.saved_versions,
+                    self.passwords_model.next_id,
+                )
+            ),
+            b"\x55\x55",
+            b"\x12\x34",
+            b"\x01\xAB",
+        )
+        time.sleep(1)
+        self.passwords_model.save_file(
+            pickle.dumps(
+                (
+                    records,
+                    self.passwords_model.settings,
+                    self.passwords_model.saved_versions,
+                    self.passwords_model.next_id,
+                )
+            ),
+            b"\x55\x55",
+            b"\x12\x34",
+            b"\x01\xAB",
+        )
+        time.sleep(1)
+        assert old_dir != os.listdir()
+        old_dir = list(filter(lambda item: ".pass" in item, os.listdir()))
+        assert len(self.passwords_model.saved_versions) == len(old_dir) - 1 == 2
+        for version in self.passwords_model.saved_versions:
+            assert version in old_dir
+            os.remove(version)
+
         # close file
         self.passwords_model.close_file()
         assert self.passwords_model.path == ""
         assert len(self.passwords_model.records) == 0
+        assert len(self.passwords_model.saved_versions) == 0
+        assert self.passwords_model.filter == [None, None, None]
+        assert self.passwords_model.search_term == ""
         assert self.passwords_model.next_id == 0
 
         # initiation
@@ -163,5 +258,42 @@ class Test_PasswordsModel:
 
         # check overwrite
         self.passwords_model.initialize("test1.pass", create=True)
+
+        os.remove("test1.pass")
+
+    def test_settings(self):
+        self.passwords_model.initialize("test1.pass", create=True)
+        assert self.passwords_model.settings.warn is True
+        assert self.passwords_model.settings.warn_age == 90 * 24 * 60 * 60
+        assert self.passwords_model.settings.saved_version_count == 1
+        assert self.passwords_model.settings.lower_case is True
+        assert self.passwords_model.settings.upper_case is True
+        assert self.passwords_model.settings.digits is True
+        assert self.passwords_model.settings.symbols is True
+        assert self.passwords_model.settings.length == 26
+
+        self.passwords_model.set_warn_setting(True)
+        assert self.passwords_model.settings.warn is True
+
+        self.passwords_model.set_warn_age_setting(1)
+        assert self.passwords_model.settings.warn_age == 1
+
+        self.passwords_model.set_saved_version_count_setting(3)
+        assert self.passwords_model.settings.saved_version_count == 3
+
+        self.passwords_model.set_lower_case_setting(True)
+        assert self.passwords_model.settings.lower_case is True
+
+        self.passwords_model.set_upper_case_setting(False)
+        assert self.passwords_model.settings.upper_case is False
+
+        self.passwords_model.set_digits_setting(True)
+        assert self.passwords_model.settings.digits is True
+
+        self.passwords_model.set_symbols_setting(False)
+        assert self.passwords_model.settings.symbols is False
+
+        self.passwords_model.set_length_setting(10)
+        assert self.passwords_model.settings.length == 10
 
         os.remove("test1.pass")
