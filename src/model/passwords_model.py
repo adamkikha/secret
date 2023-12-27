@@ -43,38 +43,41 @@ class PasswordsModel(Model):
         with open(self.path, "wb") as file:
             file.write(file_data)
         if self.settings.saved_version_count > 1:
-            date = self.time_oracle.get_current_time()
+            readable_date = self.time_oracle.get_readable_time(
+                self.time_oracle.get_current_time()
+            ).replace(":", "-")
             dir_name, file_name = os.path.split(self.path)
             base_name, ext = os.path.splitext(file_name)
             backup_directory = os.path.join(dir_name, base_name + "_backups")
-            if os.path.isdir(backup_directory):
-                backups = os.listdir(backup_directory)
-                while os.path.isfile(
-                    os.path.join(
-                        backup_directory,
-                        f"{base_name}_{self.time_oracle.get_readable_time(date).replace(':', '-')}"
-                        + ext,
-                    )
-                ):
-                    date = date + 1
-                if len(backups) >= self.settings.saved_version_count - 1:
-                    backups.sort(
-                        key=lambda f: os.path.getmtime(
-                            os.path.join(backup_directory, f)
-                        )
-                    )
-                    os.remove(
-                        os.path.join(
-                            backup_directory,
-                            backups.pop(-(self.settings.saved_version_count - 1)),
-                        )
-                    )
-            else:
-                os.makedirs(backup_directory)
-            date = self.time_oracle.get_readable_time(date).replace(":", "-")
-            new_file_path = os.path.join(backup_directory, f"{base_name}_{date}" + ext)
+            os.makedirs(backup_directory, exist_ok=True)
+            counter = 0
+            append_name = ""
+            backups = os.listdir(backup_directory)
+            while os.path.isfile(
+                os.path.join(
+                    backup_directory,
+                    f"{base_name}_{readable_date}{append_name}" + ext,
+                )
+            ):
+                counter += 1
+                append_name = f"_{counter}"
+
+            new_file_path = os.path.join(
+                backup_directory, f"{base_name}_{readable_date}{append_name}" + ext
+            )
             with open(new_file_path, "wb") as file:
                 file.write(file_data)
+
+            if len(backups) >= self.settings.saved_version_count - 1:
+                backups.sort(
+                    key=lambda f: os.path.getmtime(os.path.join(backup_directory, f))
+                )
+                os.remove(
+                    os.path.join(
+                        backup_directory,
+                        backups.pop(-(self.settings.saved_version_count - 1)),
+                    )
+                )
 
     def set_warn_setting(self, setting: bool):
         self.settings.warn = setting
