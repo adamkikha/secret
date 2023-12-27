@@ -674,8 +674,6 @@ class PassMenuBar(tk.Menu):
             command=self.close_file_clicked,
         )
 
-        self.view_menu = tk.Menu(self.menubar, tearoff=False)
-
         self.tools_menu = tk.Menu(self.menubar, tearoff=False)
         self.tools_menu.add_command(
             label="Password Generator",
@@ -684,7 +682,7 @@ class PassMenuBar(tk.Menu):
 
         self.menubar.add_cascade(menu=self.file_menu, label="File")
         self.menubar.add_cascade(menu=self.tools_menu, label="Tools")
-        self.menubar.add_cascade(label="Settings", command=self.settings_clicked)
+        self.menubar.add_command(label="Settings", command=self.settings_clicked)
 
     def display(self):
         self.controller.view_controller.config(menu=self.menubar)
@@ -728,6 +726,10 @@ class PassMenuBar(tk.Menu):
         self.controller.passwords_controller.save_file()
 
     def lock_file_clicked(self):
+        self.controller.passwords_display_frame.username_fltr_ent.delete(0, tk.END)
+        self.controller.passwords_display_frame.tag_fltr_ent.delete(0, tk.END)
+        self.controller.passwords_display_frame.url_fltr_ent.delete(0, tk.END)
+        self.controller.passwords_display_frame.search_ent.delete(0, tk.END)
         self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
             "Lock", state="disabled"
         )
@@ -746,6 +748,10 @@ class PassMenuBar(tk.Menu):
         # TODO: pop up window for lock
 
     def close_file_clicked(self, save=True):
+        self.controller.passwords_display_frame.username_fltr_ent.delete(0, tk.END)
+        self.controller.passwords_display_frame.tag_fltr_ent.delete(0, tk.END)
+        self.controller.passwords_display_frame.url_fltr_ent.delete(0, tk.END)
+        self.controller.passwords_display_frame.search_ent.delete(0, tk.END)
         self.controller.passwords_display_frame.menu_bar.file_menu.entryconfig(
             "Lock", state="disabled"
         )
