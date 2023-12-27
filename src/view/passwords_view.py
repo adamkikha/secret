@@ -44,6 +44,15 @@ class RecordsWindow(ctk.CTkToplevel):
             data_entry.grid(row=i, column=1, padx=5, pady=5)
             # saving the entry fields in an array as a class variable
             self.ent_fields.append(data_entry)
+        self.pass_trace = tk.StringVar()
+        self.pass_trace.trace_add("write", lambda *args: self.update_entropy())
+        self.pass_ent = self.ent_fields[1]
+        self.pass_ent.configure(textvariable=self.pass_trace)
+        self.entropy_label = ctk.CTkLabel(
+            master=self, text="", fg_color="transparent", width=7
+        )
+        self.entropy_label.grid(row=1, column=2, padx=(0, 20), pady=5)
+        self.update_entropy()
 
         for header in headers[-2:]:
             i += 1  # update the next grid row
@@ -75,6 +84,29 @@ class RecordsWindow(ctk.CTkToplevel):
         )
         self.btn.place(anchor="c", relx=0.5, rely=0.9)
         # -----------------------------
+
+    def update_entropy(self):
+        entropy_bits = self.controller.passwords_controller.get_password_entropy(
+            self.pass_trace.get()
+        )
+
+        # Define the minimum and maximum entropy bits
+        min_entropy_bits = 0
+        max_entropy_bits = 100
+        normalized_entropy = min(entropy_bits, max_entropy_bits)
+        # Normalize the entropy bits to a value between 0 and 1
+        normalized_entropy = (normalized_entropy - min_entropy_bits) / (
+            max_entropy_bits - min_entropy_bits
+        )
+        min_luminance = 20
+        # Calculate the red and green values
+        red = int((1 - normalized_entropy) * 255) + min_luminance
+        red = red if red < 256 else 255
+        green = int(normalized_entropy * 255) + min_luminance
+        green = green if green < 256 else 255
+        # Convert the color values to a hexadecimal string
+        hex_color = "#{:02x}{:02x}{:02x}".format(red, green, min_luminance)
+        self.entropy_label.configure(text=f"{entropy_bits:06.2f}", fg_color=hex_color)
 
     def set_geometry(self, width, height):
         self.resizable(False, False)
