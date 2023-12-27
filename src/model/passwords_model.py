@@ -156,14 +156,14 @@ class PasswordsModel(Model):
                 self.search_term = search_term
             result: list[PasswordRecord] = self.get_records().copy()
 
-            for index, record in enumerate(result):
+            for record in self.get_records():
                 if filter_list[0] and record.username != filter_list[0]:
-                    result.pop(index)
-                if filter_list[1] and record.tag != filter_list[1]:
-                    result.pop(index)
-                if filter_list[2] and record.url != filter_list[2]:
-                    result.pop(index)
-                if search_term != "":
+                    result.remove(record)
+                elif filter_list[1] and record.tag != filter_list[1]:
+                    result.remove(record)
+                elif filter_list[2] and record.url != filter_list[2]:
+                    result.remove(record)
+                elif search_term != "":
                     match = False
                     for value in (
                         record.username,
@@ -176,7 +176,7 @@ class PasswordsModel(Model):
                             match = True
                             break
                     if not match:
-                        result.pop(index)
+                        result.remove(record)
 
             self.view.update_data(result)
 

@@ -297,3 +297,61 @@ class Test_PasswordsModel:
         assert self.passwords_model.settings.length == 10
 
         os.remove("test1.pass")
+
+    def test_filter_search(self):
+        self.passwords_model.initialize("test.pass", create=True)
+        # adding test records
+        with open("tests/password_test_records", "r") as records_file:
+            lines = records_file.readlines()
+            for line in lines:
+                data = line.split(sep=" | ")
+                self.passwords_model.add_pass_record(*data)
+
+        # test filtering
+        self.passwords_model.filter_search(["henry_cavill", "", ""], "")
+        assert len(self.passwords_model.view.passwords_dec_data) == 2
+        for record in self.passwords_model.view.passwords_dec_data:
+            assert record.username == "henry_cavill"
+        self.passwords_model.filter_search(["", "Music", ""], "")
+        assert len(self.passwords_model.view.passwords_dec_data) == 3
+        for record in self.passwords_model.view.passwords_dec_data:
+            assert record.tag == "Music"
+        self.passwords_model.filter_search(["", "Acting", "https://www.imdb.com"], "")
+        assert len(self.passwords_model.view.passwords_dec_data) == 7
+        for record in self.passwords_model.view.passwords_dec_data:
+            assert record.tag == "Acting" and record.url == "https://www.imdb.com"
+
+        # test searching
+        self.passwords_model.filter_search(["", "Acting", ""], "on")
+        assert len(self.passwords_model.view.passwords_dec_data) == 4
+        for record in self.passwords_model.view.passwords_dec_data:
+            assert record.tag == "Acting"
+            match = False
+            for value in (
+                record.username,
+                record.password,
+                record.tag,
+                record.url,
+                record.notes,
+            ):
+                if "on" in value:
+                    match = True
+                    break
+            assert match is True
+        self.passwords_model.filter_search(["", "", ""], "de")
+        assert len(self.passwords_model.view.passwords_dec_data) == 4
+        for record in self.passwords_model.view.passwords_dec_data:
+            match = False
+            for value in (
+                record.username,
+                record.password,
+                record.tag,
+                record.url,
+                record.notes,
+            ):
+                if "de" in value:
+                    match = True
+                    break
+            assert match is True
+
+        os.remove("test.pass")
