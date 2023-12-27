@@ -464,6 +464,11 @@ class ContMenuBar(tk.Menu):
         self.controller.container_controller.save_file()
 
     def lock_file_clicked(self):
+        self.controller.container_display_frame.filename_fltr_ent.delete(0, tk.END)
+        self.controller.container_display_frame.sizel_fltr_ent.delete(0, tk.END)
+        self.controller.container_display_frame.sizeu_fltr_ent.delete(0, tk.END)
+        self.controller.container_display_frame.tag_ent.delete(0, tk.END)
+        self.controller.container_display_frame.search_ent.delete(0, tk.END)
         self.controller.container_display_frame.menu_bar.file_menu.entryconfig(
             "Lock", state="disabled"
         )
@@ -476,6 +481,11 @@ class ContMenuBar(tk.Menu):
         self.controller.master_key_frame.display(False)
 
     def close_file_clicked(self, save=True):
+        self.controller.container_display_frame.filename_fltr_ent.delete(0, tk.END)
+        self.controller.container_display_frame.sizel_fltr_ent.delete(0, tk.END)
+        self.controller.container_display_frame.sizeu_fltr_ent.delete(0, tk.END)
+        self.controller.container_display_frame.tag_ent.delete(0, tk.END)
+        self.controller.container_display_frame.search_ent.delete(0, tk.END)
         self.controller.container_display_frame.menu_bar.file_menu.entryconfig(
             "Lock", state="disabled"
         )
