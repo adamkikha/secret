@@ -110,7 +110,8 @@ class Test_PasswordsModel:
         os.remove("test1.pass")
 
     def test_files(self):
-        self.passwords_model.initialize("test1.pass", create=True)
+        self.passwords_model.initialize("test1", create=True)
+        assert self.passwords_model.path == "test1.pass"
         self.passwords_model.add_pass_record(
             "a",
             "1",

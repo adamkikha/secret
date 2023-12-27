@@ -12,6 +12,9 @@ class ContainerModel(Model):
         self.search_term = ""
 
     def initialize(self, path: str, create: bool):
+        file_name, ext = os.path.splitext(path)
+        if ext != ".cont":
+            path = path + ".cont"
         super().initialize(path, create)
         self.file_data = []
 

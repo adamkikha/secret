@@ -128,7 +128,8 @@ class Test_ContainerModel:
                 "testtest",
             ),
         ]
-        self.container_model.initialize("test.cont", create=True)
+        self.container_model.initialize("test", create=True)
+        assert self.container_model.path == "test.cont"
         for test in tests:
             with open(test[1], "w") as test_file:
                 test_file.write(test[0])

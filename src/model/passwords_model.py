@@ -1,5 +1,4 @@
 import os
-import time
 
 from src.model.model import Model
 from src.model.password_record import PasswordRecord
@@ -16,6 +15,9 @@ class PasswordsModel(Model):
         self.search_term = ""
 
     def initialize(self, path: str, create: bool):
+        file_name, ext = os.path.splitext(path)
+        if ext != ".pass":
+            path = path + ".pass"
         super().initialize(path, create)
         self.settings = PasswordSettings()
         self.view.update_settings(self.settings)
@@ -59,6 +61,8 @@ class PasswordsModel(Model):
     def set_warn_setting(self, setting: bool):
         self.settings.warn = setting
         self.view.update_settings(self.settings)
+        for record in self.get_records():
+            record.set_warn(False)
 
     def set_warn_age_setting(self, setting: int):
         self.settings.warn_age = setting
