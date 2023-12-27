@@ -648,28 +648,21 @@ class PassMenuBar(tk.Menu):
             controller.view_controller, font=("Trebuchet MS", 9, "bold")
         )
         self.file_menu = tk.Menu(self.menubar, tearoff=False)
-        self.file_menu.add_command(
-            label="New", accelerator="Ctrl+N", command=self.new_file_clicked
-        )
-        self.file_menu.add_command(
-            label="Open", accelerator="Ctrl+O", command=self.open_file_clicked
-        )
+        self.file_menu.add_command(label="New", command=self.new_file_clicked)
+        self.file_menu.add_command(label="Open", command=self.open_file_clicked)
         self.file_menu.add_command(
             label="Save",
-            accelerator="Ctrl+S",
             state="disabled",
             command=self.save_file_clicked,
         )
         self.file_menu.add_command(
             label="Lock",
-            accelerator="Ctrl+L",
             state="disabled",
             command=self.lock_file_clicked,
         )
 
         self.file_menu.add_command(
             label="Close",
-            accelerator="Ctrl+E",
             state="disabled",
             command=self.close_file_clicked,
         )
