@@ -3,6 +3,8 @@ from src.model.passwords_model import PasswordsModel
 from src.utils import TimeOracle
 from copy import copy
 import os
+import random
+import string
 from src.view.view import View
 
 
@@ -134,3 +136,104 @@ class Test_PasswordsController:
             assert len(self.pass_controller.model.get_records()) == length - 1
 
         os.remove(self.success_tests[0][1])
+
+    def test_password_generator(self):
+        # Test 1: Only lower case letters
+        self.pass_controller.set_lower_case_setting(True)
+        self.pass_controller.set_upper_case_setting(False)
+        self.pass_controller.set_digits_setting(False)
+        self.pass_controller.set_symbols_setting(False)
+        self.pass_controller.set_length_setting(10)
+
+        random.seed(42)
+        for _ in range(10):
+            password = self.pass_controller.generate_password()
+            assert any(char in string.ascii_lowercase for char in password) is True
+            assert any(char in string.ascii_uppercase for char in password) is False
+            assert any(char in string.digits for char in password) is False
+            assert any(char in string.punctuation for char in password) is False
+            assert len(password) == 10
+
+        # Test 2: Only upper case letters
+        self.pass_controller.set_lower_case_setting(False)
+        self.pass_controller.set_upper_case_setting(True)
+        self.pass_controller.set_digits_setting(False)
+        self.pass_controller.set_symbols_setting(False)
+        self.pass_controller.set_length_setting(15)
+
+        random.seed(42)
+        for _ in range(10):
+            password = self.pass_controller.generate_password()
+            assert any(char in string.ascii_lowercase for char in password) is False
+            assert any(char in string.ascii_uppercase for char in password) is True
+            assert any(char in string.digits for char in password) is False
+            assert any(char in string.punctuation for char in password) is False
+            assert len(password) == 15
+
+        # Test 3: Only digits
+        self.pass_controller.set_lower_case_setting(False)
+        self.pass_controller.set_upper_case_setting(False)
+        self.pass_controller.set_digits_setting(True)
+        self.pass_controller.set_symbols_setting(False)
+        self.pass_controller.set_length_setting(20)
+
+        random.seed(42)
+        for _ in range(10):
+            password = self.pass_controller.generate_password()
+            assert any(char in string.ascii_lowercase for char in password) is False
+            assert any(char in string.ascii_uppercase for char in password) is False
+            assert any(char in string.digits for char in password) is True
+            assert any(char in string.punctuation for char in password) is False
+            assert len(password) == 20
+
+        # Test 4: Only symbols
+        self.pass_controller.set_lower_case_setting(False)
+        self.pass_controller.set_upper_case_setting(False)
+        self.pass_controller.set_digits_setting(False)
+        self.pass_controller.set_symbols_setting(True)
+        self.pass_controller.set_length_setting(26)
+
+        random.seed(42)
+        for _ in range(10):
+            password = self.pass_controller.generate_password()
+            assert any(char in string.ascii_lowercase for char in password) is False
+            assert any(char in string.ascii_uppercase for char in password) is False
+            assert any(char in string.digits for char in password) is False
+            assert any(char in string.punctuation for char in password) is True
+            assert len(password) == 26
+
+        # Test : lower_case letters and digits
+        self.pass_controller.set_lower_case_setting(True)
+        self.pass_controller.set_upper_case_setting(False)
+        self.pass_controller.set_digits_setting(True)
+        self.pass_controller.set_symbols_setting(False)
+        self.pass_controller.set_length_setting(30)
+
+        random.seed(42)
+        for _ in range(10):
+            password = self.pass_controller.generate_password()
+            assert (
+                any(char in string.ascii_lowercase for char in password)
+                or any(char in string.digits for char in password) is True
+            )
+            assert any(char in string.ascii_uppercase for char in password) is False
+            assert any(char in string.punctuation for char in password) is False
+            assert len(password) == 30
+
+        # Test : upper_case letters and symbols
+        self.pass_controller.set_lower_case_setting(False)
+        self.pass_controller.set_upper_case_setting(True)
+        self.pass_controller.set_digits_setting(False)
+        self.pass_controller.set_symbols_setting(True)
+        self.pass_controller.set_length_setting(32)
+
+        random.seed(42)
+        for _ in range(10):
+            password = self.pass_controller.generate_password()
+            assert (
+                any(char in string.ascii_uppercase for char in password)
+                or any(char in string.punctuation for char in password) is True
+            )
+            assert any(char in string.ascii_lowercase for char in password) is False
+            assert any(char in string.digits for char in password) is False
+            assert len(password) == 32
