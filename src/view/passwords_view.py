@@ -219,10 +219,17 @@ class PassGenWindow(ctk.CTkToplevel):
         # check box settings
         self.pass_gen_settings = PassGenSettings(self, row_index)
 
-        self.pass_entry = ctk.CTkEntry(self, width=300, state="readonly")
+        self.pass_trace = tk.StringVar()
+        self.pass_trace.trace_add("write", lambda *args: self.update_entropy())
+        self.pass_entry = ctk.CTkEntry(
+            self, width=300, state="readonly", textvariable=self.pass_trace
+        )
         self.pass_entry.place(anchor="c", relx=0.45, rely=0.7)
-        self.pass_entropy = ctk.CTkLabel(self, text="0.0", text_color="red")
-        self.pass_entropy.place(anchor="c", relx=0.9, rely=0.7)
+        self.entropy_label = ctk.CTkLabel(
+            master=self, text="", fg_color="transparent", width=7
+        )
+        self.entropy_label.place(anchor="e", relx=0.925, rely=0.7)
+        self.update_entropy()
 
         # actions button
         self.btn = ctk.CTkButton(
@@ -236,6 +243,29 @@ class PassGenWindow(ctk.CTkToplevel):
         self.btn.place(anchor="c", relx=0.5, rely=0.9)
         # -----------------------------
         self.pass_gen_settings.set_values()
+
+    def update_entropy(self):
+        entropy_bits = self.controller.passwords_controller.get_password_entropy(
+            self.pass_trace.get()
+        )
+
+        # Define the minimum and maximum entropy bits
+        min_entropy_bits = 0
+        max_entropy_bits = 100
+        normalized_entropy = min(entropy_bits, max_entropy_bits)
+        # Normalize the entropy bits to a value between 0 and 1
+        normalized_entropy = (normalized_entropy - min_entropy_bits) / (
+            max_entropy_bits - min_entropy_bits
+        )
+        min_luminance = 20
+        # Calculate the red and green values
+        red = int((1 - normalized_entropy) * 255) + min_luminance
+        red = red if red < 256 else 255
+        green = int(normalized_entropy * 255) + min_luminance
+        green = green if green < 256 else 255
+        # Convert the color values to a hexadecimal string
+        hex_color = "#{:02x}{:02x}{:02x}".format(red, green, min_luminance)
+        self.entropy_label.configure(text=f"{entropy_bits:06.2f}", fg_color=hex_color)
 
     def set_geometry(self, width, height):
         self.resizable(False, False)
@@ -304,12 +334,12 @@ class RecordsWindow(ctk.CTkToplevel):
         self.entropy_label = ctk.CTkLabel(
             master=self, text="", fg_color="transparent", width=7
         )
-        self.entropy_label.place(anchor="c", relx=0.96, rely=0.1035)
+        self.entropy_label.place(anchor="e", relx=0.958, rely=0.1035)
         self.update_entropy()
         self.gen_pass_btn = ctk.CTkButton(
             self, text="", width=20, height=20, command=self.btn_gen_pass_com
         )
-        self.gen_pass_btn.place(anchor="c", relx=0.48, rely=0.1035)
+        self.gen_pass_btn.place(anchor="c", relx=0.45, rely=0.1035)
 
         for header in headers[-2:]:
             i += 1  # update the next grid row
