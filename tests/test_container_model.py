@@ -1,11 +1,13 @@
 import os
 import pickle
+import random
+
 import pytest
 from src.model.container_model import ContainerModel
 from src.utils import TimeOracle
 from src.view.view import View
 from copy import copy
-from src.view.container_view import ContainerView
+from src.model.file_record import FileRecord
 
 
 class Test_ContainerModel:
@@ -194,3 +196,58 @@ class Test_ContainerModel:
         os.remove("test.cont")
         os.remove("a")
         os.remove("b")
+
+    def test_filter_search(self):
+        self.container_model.initialize("test.cont", create=True)
+        with open("tests/file_test_records", "r") as records_file:
+            lines = records_file.readlines()
+            for line in lines:
+                data = line.split(sep=" | ")
+                self.container_model.__add_record__(
+                    FileRecord(
+                        self.container_model.next_id,
+                        data[0],
+                        int(data[1]),
+                        data[2],
+                        data[3],
+                        random.randint(0, 1703632802),
+                    )
+                )
+
+        # test filtering
+        self.container_model.filter_search(["resume.pdf", "", "", ""], "")
+        assert len(self.container_model.view.container_dec_data) == 2
+        for record in self.container_model.view.container_dec_data:
+            assert record.name == "resume.pdf"
+        self.container_model.filter_search(["", "80000000", "", "Music"], "")
+        assert len(self.container_model.view.container_dec_data) == 1
+        for record in self.container_model.view.container_dec_data:
+            assert record.name == "music2.flac"
+            assert record.size > 9000000
+            assert record.tag == "Music"
+        self.container_model.filter_search(["", "", "", "Audio"], "")
+        assert len(self.container_model.view.container_dec_data) == 2
+        for record in self.container_model.view.container_dec_data:
+            assert record.tag == "Audio"
+
+        # test searching
+        self.container_model.filter_search(["", "", "57000", ""], "create")
+        assert len(self.container_model.view.container_dec_data) == 2
+        for record in self.container_model.view.container_dec_data:
+            assert record.size < 57000
+            match = False
+            for value in (
+                record.name,
+                record.tag,
+                record.notes,
+            ):
+                if "create" in value:
+                    match = True
+                    break
+            assert match is True
+        self.container_model.filter_search(["", "56000000", "57000000", ""], ".mp4")
+        assert len(self.container_model.view.container_dec_data) == 1
+        record = self.container_model.view.container_dec_data[0]
+        assert ".mp4" in record.name
+        assert record.size == 56789012
+        os.remove("test.cont")

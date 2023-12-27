@@ -79,28 +79,27 @@ class ContainerModel(Model):
                 self.search_term = search_term
             result: list[FileRecord] = self.get_records().copy()
 
-            for index, record in enumerate(result):
+            for record in self.get_records():
                 if filter_list[0] and record.name != filter_list[0]:
-                    result.pop(index)
-                if filter_list[1] and record.size < int(filter_list[1]):
-                    result.pop(index)
-                if filter_list[2] and record.size > int(filter_list[2]):
-                    result.pop(index)
-                if filter_list[3] and record.tag != filter_list[3]:
-                    result.pop(index)
-                if search_term != "":
+                    result.remove(record)
+                elif filter_list[1] and record.size < int(filter_list[1]):
+                    result.remove(record)
+                elif filter_list[2] and record.size > int(filter_list[2]):
+                    result.remove(record)
+                elif filter_list[3] and record.tag != filter_list[3]:
+                    result.remove(record)
+                elif search_term != "":
                     match = False
                     for value in (
                         record.name,
                         record.tag,
-                        record.size,
                         record.notes,
                     ):
                         if search_term in value:
                             match = True
                             break
                     if not match:
-                        result.pop(index)
+                        result.remove(record)
 
             self.view.update_data(result)
 
