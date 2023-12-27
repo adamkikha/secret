@@ -72,4 +72,6 @@ class Controller:
     def get_password_entropy(password: str):
         char_set_len = len(set(password))
         pass_len = len(password)
-        return pass_len * log2(char_set_len)
+        if char_set_len:
+            return pass_len * log2(char_set_len)
+        return 0

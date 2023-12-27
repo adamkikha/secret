@@ -222,6 +222,8 @@ class PassMKFrame(ctk.CTkFrame):
 
         # ---------- widgets ----------
         # Entry for the password
+        self.mk_pass = tk.StringVar()
+        self.mk_pass.trace_add("write", lambda *args: self.update_entropy())
         self.mk_ent = ctk.CTkEntry(
             master=self,
             width=200,
@@ -229,8 +231,14 @@ class PassMKFrame(ctk.CTkFrame):
             show="*",
             font=("Trebuchet MS", 15),
             placeholder_text="Master Key",
+            textvariable=self.mk_pass,
         )
         self.mk_ent.place(anchor="c", relx=0.5, rely=0.4)
+
+        self.entropy_label = ctk.CTkLabel(
+            master=self, text="", fg_color="transparent", width=7
+        )
+        self.entropy_label.place(anchor="e", relx=0.5, rely=0.4, x=140)
 
         # confiem buton
         self.confirm_btn = ctk.CTkButton(
@@ -254,9 +262,37 @@ class PassMKFrame(ctk.CTkFrame):
         )
         back_btn.place(anchor="c", relx=0.5, rely=0.6)
 
+    def update_entropy(self):
+        if not self.new_MK:
+            self.entropy_label.configure(text="", fg_color="transparent")
+            return
+
+        entropy_bits = self.controller.container_controller.get_password_entropy(
+            self.mk_pass.get()
+        )
+
+        # Define the minimum and maximum entropy bits
+        min_entropy_bits = 0
+        max_entropy_bits = 100
+        normalized_entropy = min(entropy_bits, max_entropy_bits)
+        # Normalize the entropy bits to a value between 0 and 1
+        normalized_entropy = (normalized_entropy - min_entropy_bits) / (
+            max_entropy_bits - min_entropy_bits
+        )
+        min_luminance = 20
+        # Calculate the red and green values
+        red = int((1 - normalized_entropy) * 255) + min_luminance
+        red = red if red < 256 else 255
+        green = int(normalized_entropy * 255) + min_luminance
+        green = green if green < 256 else 255
+        # Convert the color values to a hexadecimal string
+        hex_color = "#{:02x}{:02x}{:02x}".format(red, green, min_luminance)
+        self.entropy_label.configure(text=f"{entropy_bits:06.2f}", fg_color=hex_color)
+
     def display(self, new_MK=True):
         self.focus_set()  # changing the focus from the entry when switching back to the same frame
         self.new_MK = new_MK
+        self.update_entropy()
         self.pack(pady=10, padx=10, fill="both", expand=True)
 
     def back_btn_com(self):

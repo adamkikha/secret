@@ -1,6 +1,9 @@
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import ttk
+from src.model.passwords_model import PasswordsModel
+from src.controller.passwords_controller import PasswordsController
+from src.utils import TimeOracle
 from src.view.view import View
 from src.view.passwords_view import (
     PassMenuBar,
@@ -15,8 +18,8 @@ def test_master_key_frame():
 
     child_widgets = master_key_frame.winfo_children()
 
-    child_types = [ctk.CTkEntry, ctk.CTkButton, ctk.CTkButton]
-    child_btn_txt = ["Confirm", "Back"]
+    child_types = [ctk.CTkEntry, ctk.CTkLabel, ctk.CTkButton, ctk.CTkButton]
+    child_btn_txt = ["", "Confirm", "Back"]
 
     for i, widget in enumerate(child_widgets):
         assert isinstance(widget, child_types[i])
@@ -46,9 +49,9 @@ def test_passwords_display_frame():
 
 def test_scroll_bar():
     """test the scroll bar attributes"""
-    
+
     secret_root = View()
-    
+
     frame = tk.Frame(secret_root, borderwidth=2, relief="solid")
     menu_bar = PassMenuBar(secret_root.passwords_view, frame)
 
@@ -70,6 +73,12 @@ def test_scroll_bar():
 
 def test_records_frame():
     secret_root = View()
+    time_oracle = TimeOracle()
+    passwords_model = PasswordsModel(time_oracle)
+    passwords_controller = PasswordsController()
+    secret_root.set_passwords_controller(passwords_controller)
+    passwords_controller.set_passwords_model(passwords_model)
+    passwords_model.set_passwords_view(secret_root.passwords_view)
     headers = [
         "ID",
         "Username",
@@ -80,11 +89,11 @@ def test_records_frame():
         "password modification date",
         "Record modification date",
     ]
-    record_window = RecordsWindow(secret_root, None, headers)
+    record_window = RecordsWindow(secret_root.passwords_view, None, headers)
     widgets = record_window.children
     widgets_type = list(widgets.values())
     types_dict = {}
-    assert len(widgets) == 15
+    assert len(widgets) == 16
     for wid in widgets_type:
         # print
         if type(wid) in types_dict:
