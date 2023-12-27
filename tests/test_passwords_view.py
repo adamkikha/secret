@@ -67,7 +67,7 @@ def test_scroll_bar():
     menu_bar = PassMenuBar(secret_root.passwords_view, frame)
 
     child_cascades = menu_bar.menubar.winfo_children()
-    menu_bar_item = 3
+    menu_bar_item = 2
     cascade_labels = ["File", "Tools", "Settings"]
     child_sub_labels = [["New", "Open", "Lock", "Close"], [], [], []]
 
