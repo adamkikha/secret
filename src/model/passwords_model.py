@@ -205,7 +205,9 @@ class PasswordsModel(Model):
         if self.settings.warn:
             current_time = self.time_oracle.get_current_time()
             for record in self.get_records():
-                if (current_time - record.pass_mdate) >= self.settings.warn_age:
+                if (current_time - record.pass_mdate) >= (
+                    self.settings.warn_age * 24 * 60 * 60
+                ):
                     record.set_warn(True)
 
     def update_data(self):

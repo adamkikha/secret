@@ -280,7 +280,7 @@ class Test_PasswordsModel:
     def test_settings(self):
         self.passwords_model.initialize("test1.pass", create=True)
         assert self.passwords_model.settings.warn is True
-        assert self.passwords_model.settings.warn_age == 90 * 24 * 60 * 60
+        assert self.passwords_model.settings.warn_age == 90
         assert self.passwords_model.settings.saved_version_count == 1
         assert self.passwords_model.settings.lower_case is True
         assert self.passwords_model.settings.upper_case is True
