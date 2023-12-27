@@ -15,8 +15,8 @@ def test_master_key_frame():
 
     child_widgets = master_key_frame.winfo_children()
 
-    child_types = [ctk.CTkEntry, ctk.CTkButton, ctk.CTkButton]
-    child_btn_txt = ["Confirm", "Back"]
+    child_types = [ctk.CTkEntry, ctk.CTkLabel, ctk.CTkButton, ctk.CTkButton]
+    child_btn_txt = ["", "Confirm", "Back"]
 
     for i, widget in enumerate(child_widgets):
         assert isinstance(widget, child_types[i])
