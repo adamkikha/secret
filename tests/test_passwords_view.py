@@ -38,9 +38,20 @@ def test_passwords_display_frame():
     passwords_display_frame = secret_root.passwords_view.passwords_display_frame
 
     child_widgets = passwords_display_frame.winfo_children()
-    child_types = [ctk.CTkButton, ttk.Treeview]
+    assert len(child_widgets) == 7
+
+    child_types = [
+        ctk.CTkButton,
+        ctk.CTkEntry,
+        ctk.CTkEntry,
+        ctk.CTkEntry,
+        ctk.CTkEntry,
+        ctk.CTkButton,
+        ttk.Treeview,
+    ]
 
     assert child_widgets[0].cget("text") == "+ Add"
+
     for i, widget in enumerate(child_widgets):
         assert isinstance(widget, child_types[i])
 
@@ -56,8 +67,8 @@ def test_scroll_bar():
     menu_bar = PassMenuBar(secret_root.passwords_view, frame)
 
     child_cascades = menu_bar.menubar.winfo_children()
-    menu_bar_item = 4
-    cascade_labels = ["File", "View", "Tools", "Settings"]
+    menu_bar_item = 3
+    cascade_labels = ["File", "Tools", "Settings"]
     child_sub_labels = [["New", "Open", "Lock", "Close"], [], [], []]
 
     assert len(child_cascades) == menu_bar_item
@@ -93,7 +104,7 @@ def test_records_frame():
     widgets = record_window.children
     widgets_type = list(widgets.values())
     types_dict = {}
-    assert len(widgets) == 16
+    assert len(widgets) == 17
     for wid in widgets_type:
         # print
         if type(wid) in types_dict:

@@ -34,9 +34,20 @@ def test_container_display_frame():
     passwords_display_frame = secret_root.container_view.container_display_frame
 
     child_widgets = passwords_display_frame.winfo_children()
-    child_types = [ctk.CTkButton, ttk.Treeview]
+    child_types = [
+        ctk.CTkButton,
+        ctk.CTkEntry,
+        ctk.CTkEntry,
+        ctk.CTkEntry,
+        ctk.CTkEntry,
+        ctk.CTkEntry,
+        ctk.CTkButton,
+        ttk.Treeview,
+    ]
 
+    assert len(child_widgets) == 8
     assert child_widgets[0].cget("text") == "+ Add"
+
     for i, widget in enumerate(child_widgets):
         assert isinstance(widget, child_types[i])
 
@@ -52,8 +63,8 @@ def test_scroll_bar():
     menu_bar = ContMenuBar(secret_root.container_view, frame)
 
     child_cascades = menu_bar.menubar.winfo_children()
-    menu_bar_item = 3
-    cascade_labels = ["File", "View", "Settings"]
+    menu_bar_item = 1
+    cascade_labels = ["File", "Settings"]
     child_sub_labels = [["New", "Open", "Lock", "Close"], [], [], []]
 
     assert len(child_cascades) == menu_bar_item
