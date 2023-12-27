@@ -18,6 +18,7 @@ class PasswordsModel(Model):
     def initialize(self, path: str, create: bool):
         super().initialize(path, create)
         self.settings = PasswordSettings()
+        self.view.update_settings(self.settings)
         self.saved_versions = []
         self.filter = [None, None, None]
         self.search_term = ""
@@ -26,6 +27,7 @@ class PasswordsModel(Model):
         self.records, self.settings, self.saved_versions, self.next_id = pickle.loads(
             plaintext
         )
+        self.view.update_settings(self.settings)
         self.update_data()
 
     def serialize_records(self):
