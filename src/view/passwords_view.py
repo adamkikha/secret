@@ -3,8 +3,261 @@ from tkinter import ttk
 import customtkinter as ctk
 from tkinter import filedialog
 from src.utils import TimeOracle
-from src.model.password_record import PasswordRecord
-from src.model.password_settings import PasswordSettings
+
+
+class PassGenSettings:
+    def __init__(self, container, row_index):
+        self.container = container
+        self.lower_case_cbox_var = tk.BooleanVar()
+        self.upper_case_cbox_var = tk.BooleanVar()
+        self.numbers_cbox_var = tk.BooleanVar()
+        self.symbols_cbox_var = tk.BooleanVar()
+        self.cbox_vars = [
+            self.lower_case_cbox_var,
+            self.upper_case_cbox_var,
+            self.numbers_cbox_var,
+            self.symbols_cbox_var,
+        ]
+        self.cbox_com = [
+            self.btn_lower_case_cbox_clicked,
+            self.btn_upper_case_cbox_clicked,
+            self.btn_numbers_cbox_clicked,
+            self.btn_symbols_cbox_clicked,
+        ]
+        self.cbox_names = [
+            "Lower case letters:",
+            "Upper case letters:",
+            "Numbers:",
+            "Symbols:",
+        ]
+        # password length
+        row_index += 1
+        length_label = ctk.CTkLabel(
+            container,
+            text="Password length:",
+        )
+        length_label.grid(row=row_index, column=0, padx=50, pady=5, sticky="w")
+        self.length_entry = ctk.CTkEntry(
+            container,
+            width=100,
+        )
+        self.length_entry.grid(row=row_index, column=1, padx=10, pady=5)
+        self.length_entry.bind("<FocusOut>", self.length_entry_focus_out)
+
+        # checkboxes
+        for cbox_name, cbox_var, cbox_com in zip(
+            self.cbox_names, self.cbox_vars, self.cbox_com
+        ):
+            row_index += 1
+            label = ctk.CTkLabel(container, text=cbox_name)
+            label.grid(row=row_index, column=0, padx=50, pady=5, sticky="w")
+            cbox = ctk.CTkCheckBox(
+                master=container,
+                text="",
+                variable=cbox_var,
+                command=cbox_com,
+                onvalue=True,
+                offvalue=False,
+            )
+            cbox.grid(row=row_index, column=1, padx=5, pady=5)
+
+    def set_values(self):
+        self.length_entry.insert("0", str(self.container.controller.settings.length))
+        self.lower_case_cbox_var.set(self.container.controller.settings.lower_case)
+        self.upper_case_cbox_var.set(self.container.controller.settings.upper_case)
+        self.numbers_cbox_var.set(self.container.controller.settings.digits)
+        self.symbols_cbox_var.set(self.container.controller.settings.symbols)
+
+    def update_generate_pass_val(self):
+        self.container.controller.passwords_controller.set_length_setting(
+            int(self.length_entry.get())
+        )
+        self.container.controller.passwords_controller.set_lower_case_setting(
+            self.lower_case_cbox_var.get()
+        )
+        self.container.controller.passwords_controller.set_upper_case_setting(
+            self.upper_case_cbox_var.get()
+        )
+        self.container.controller.passwords_controller.set_digits_setting(
+            self.numbers_cbox_var.get()
+        )
+        self.container.controller.passwords_controller.set_symbols_setting(
+            self.symbols_cbox_var.get()
+        )
+
+    def length_entry_focus_out(self, event):
+        self.container.controller.passwords_controller.set_length_setting(
+            self.length_entry.get()
+        )
+
+    def btn_lower_case_cbox_clicked(self):
+        self.container.controller.passwords_controller.set_lower_case_setting(
+            self.lower_case_cbox_var.get()
+        )
+
+    def btn_upper_case_cbox_clicked(self):
+        self.container.controller.passwords_controller.set_upper_case_setting(
+            self.upper_case_cbox_var.get()
+        )
+
+    def btn_numbers_cbox_clicked(self):
+        self.container.controller.passwords_controller.set_digits_setting(
+            self.numbers_cbox_var.get()
+        )
+
+    def btn_symbols_cbox_clicked(self):
+        self.container.controller.passwords_controller.set_symbols_setting(
+            self.symbols_cbox_var.get()
+        )
+
+
+class SettingsWindow(ctk.CTkToplevel):
+    def __init__(self, controller):
+        ctk.CTkToplevel.__init__(self)
+        self.title("Settings")
+        self.set_geometry(400, 350)
+        self.wait_visibility()
+        self.grab_set()
+
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+
+        self.controller = controller
+        # ---------- widgets ----------
+        # warnings
+        row_index = 0
+        warn_label = ctk.CTkLabel(self, text="Passwords warnings:")
+        warn_label.grid(row=row_index, column=0, padx=50, pady=5, sticky="w")
+
+        self.warn_cbox_var = tk.BooleanVar()
+        self.warn_cbox = ctk.CTkCheckBox(
+            master=self,
+            text="",
+            variable=self.warn_cbox_var,
+            command=self.cbox_warn_com,
+            onvalue=True,
+            offvalue=False,
+        )
+        self.warn_cbox.grid(row=row_index, column=1, padx=5, pady=5)
+
+        self.warn_entry = ctk.CTkEntry(
+            self, width=50, fg_color="#f2f2f2", state="readonly"
+        )
+        self.warn_entry.place(anchor="c", relx=0.85, rely=0.05)
+        self.warn_entry.bind("<FocusOut>", self.warn_entry_focus_out)
+
+        # backup
+        row_index += 1
+        backup_label = ctk.CTkLabel(self, text="Backups:")
+        backup_label.grid(row=row_index, column=0, padx=50, pady=5, sticky="w")
+
+        self.backup_entry = ctk.CTkEntry(
+            self,
+            width=100,
+        )
+        self.backup_entry.grid(row=row_index, column=1, padx=10, pady=5)
+
+        self.pass_gen_settings = PassGenSettings(self, row_index)
+
+        # -----------------------------
+        self.set_settings()
+
+    def set_geometry(self, width, height):
+        self.resizable(False, False)
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        self.geometry(f"{width}x{height}+{x}+{y}")
+
+    def set_settings(self):
+        self.warn_cbox_var.set(self.controller.settings.warn)
+
+        if self.warn_cbox_var.get():
+            self.warn_entry.configure(state="normal")
+            self.warn_entry.insert("0", str(self.controller.settings.warn_age))
+
+        self.backup_entry.insert("0", str(self.controller.settings.saved_version_count))
+        self.pass_gen_settings.set_values()
+
+    def warn_entry_focus_out(self, event):
+        if self.warn_entry.get():
+            self.controller.passwords_controller.set_warn_age_setting(
+                int(self.warn_entry.get())
+            )
+
+    def cbox_warn_com(self):
+        if self.warn_cbox_var.get():
+            self.warn_entry.configure(
+                state="normal", placeholder_text="Days", fg_color="#ffffff"
+            )
+        else:
+            self.warn_entry.configure(state="readonly", fg_color="#f2f2f2")
+        self.controller.passwords_controller.set_warn_setting(self.warn_cbox_var.get())
+
+    def on_close(self):
+        # Release the grab when the window is closed
+        self.controller.passwords_controller.set_saved_version_count_setting(
+            int(self.backup_entry.get())
+        )
+        self.grab_release()
+        self.destroy()
+
+
+class PassGenWindow(ctk.CTkToplevel):
+    def __init__(self, controller):
+        ctk.CTkToplevel.__init__(self)
+        self.title("Password Generator")
+        self.set_geometry(400, 300)
+        self.wait_visibility()
+        self.grab_set()
+
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+
+        self.controller = controller
+        # ---------- widgets ----------
+        row_index = 0
+        # check box settings
+        self.pass_gen_settings = PassGenSettings(self, row_index)
+
+        self.pass_entry = ctk.CTkEntry(self, width=300, state="readonly")
+        self.pass_entry.place(anchor="c", relx=0.45, rely=0.7)
+        self.pass_entropy = ctk.CTkLabel(self, text="0.0", text_color="red")
+        self.pass_entropy.place(anchor="c", relx=0.9, rely=0.7)
+
+        # actions button
+        self.btn = ctk.CTkButton(
+            master=self,
+            width=150,
+            height=30,
+            text="Generate",
+            font=("Trebuchet MS", 20, "bold"),
+            command=self.btn_generate_com,
+        )
+        self.btn.place(anchor="c", relx=0.5, rely=0.9)
+        # -----------------------------
+        self.pass_gen_settings.set_values()
+
+    def set_geometry(self, width, height):
+        self.resizable(False, False)
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        self.geometry(f"{width}x{height}+{x}+{y}")
+
+    def btn_generate_com(self):
+        self.pass_gen_settings.update_generate_pass_val()
+        password = self.controller.passwords_controller.generate_password()
+        self.pass_entry.configure(state="normal")
+        self.pass_entry.delete(0, tk.END)
+        self.pass_entry.insert("0", password)
+        self.pass_entry.configure(state="readonly")
+        #! check password entropy
+
+    def on_close(self):
+        # Release the grab when the window is closed
+        self.grab_release()
+        self.destroy()
 
 
 class RecordsWindow(ctk.CTkToplevel):
@@ -51,8 +304,12 @@ class RecordsWindow(ctk.CTkToplevel):
         self.entropy_label = ctk.CTkLabel(
             master=self, text="", fg_color="transparent", width=7
         )
-        self.entropy_label.grid(row=1, column=2, padx=(0, 20), pady=5)
+        self.entropy_label.place(anchor="c", relx=0.96, rely=0.1035)
         self.update_entropy()
+        self.gen_pass_btn = ctk.CTkButton(
+            self, text="", width=20, height=20, command=self.btn_gen_pass_com
+        )
+        self.gen_pass_btn.place(anchor="c", relx=0.48, rely=0.1035)
 
         for header in headers[-2:]:
             i += 1  # update the next grid row
@@ -153,9 +410,6 @@ class RecordsWindow(ctk.CTkToplevel):
 
     def btn_confirm_edit_com(self):
         record = self.read_ent_fields()
-        # print("old:", self.record_orig_data)
-        # print("new:", record)
-
         # send the updates to the GUI controller
         self.controller.edit_record(record, self.record_id)
         self.destroy()
@@ -167,6 +421,9 @@ class RecordsWindow(ctk.CTkToplevel):
         # add the record to the table
         # self.data_table.insert("", "end", values=new_record)
         self.destroy()
+
+    def btn_gen_pass_com(self):
+        pass_gen = PassGenWindow(self.controller)
 
     def on_close(self):
         # Release the grab when the window is closed
@@ -272,9 +529,6 @@ class PassMKFrame(ctk.CTkFrame):
         self.mk_ent.delete(0, tk.END)
 
     def confirm_btn_com(self):
-        # self.mk_ent.configure(placeholder_text="Master Key")
-        # print(self.mk_ent.get())
-
         if self.new_MK:
             self.controller.master_key = self.mk_ent.get()
             self.controller.save_path()
@@ -393,13 +647,14 @@ class PassMenuBar(tk.Menu):
         self.view_menu = tk.Menu(self.menubar, tearoff=False)
 
         self.tools_menu = tk.Menu(self.menubar, tearoff=False)
-
-        self.settings_menu = tk.Menu(self.menubar, tearoff=False)
+        self.tools_menu.add_command(
+            label="Password Generator",
+            command=self.pass_gen_clicked,
+        )
 
         self.menubar.add_cascade(menu=self.file_menu, label="File")
-        self.menubar.add_cascade(menu=self.view_menu, label="View")
-        self.menubar.add_cascade(menu=self.view_menu, label="Tools")
-        self.menubar.add_cascade(menu=self.settings_menu, label="Settings")
+        self.menubar.add_cascade(menu=self.tools_menu, label="Tools")
+        self.menubar.add_cascade(label="Settings", command=self.settings_clicked)
 
     def display(self):
         self.controller.view_controller.config(menu=self.menubar)
@@ -484,6 +739,12 @@ class PassMenuBar(tk.Menu):
         self.frame.pack_forget()
         self.controller.view_controller.init_frame.display()
 
+    def settings_clicked(self):
+        settings = SettingsWindow(self.controller)
+
+    def pass_gen_clicked(self):
+        pass_gen = PassGenWindow(self.controller)
+
 
 class PasswordsDisplayFrame(ctk.CTkFrame):
     def __init__(self, controller):
@@ -515,6 +776,37 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
         )
         self.add_btn.pack(anchor="w", padx=0, pady=(20, 10))
         self.add_btn.configure(state="disabled")
+
+        # filter widgets -------------
+        # filter entry 1
+        self.username_fltr_ent = ctk.CTkEntry(
+            self, width=100, placeholder_text="Username"
+        )
+        self.username_fltr_ent.place(anchor="c", relx=0.435, rely=0.05)
+        # filter entry 2
+        self.tag_fltr_ent = ctk.CTkEntry(self, width=100, placeholder_text="Tag")
+        self.tag_fltr_ent.place(anchor="c", relx=0.585, rely=0.05)
+        # filter entry 3
+        self.url_fltr_ent = ctk.CTkEntry(self, width=100, placeholder_text="Url")
+        self.url_fltr_ent.place(anchor="c", relx=0.735, rely=0.05)
+        # ----------------------------
+
+        # seach widgets -------------
+        # search entry
+        self.search_ent = ctk.CTkEntry(self, width=120, placeholder_text="search")
+        self.search_ent.place(anchor="c", relx=0.885, rely=0.05)
+        # search button
+        self.search_btn = ctk.CTkButton(
+            master=self,
+            width=20,
+            height=20,
+            font=("Trebuchet MS", 15),
+            text="⌕",
+            command=self.filter_search_btn_com,
+        )
+        self.search_btn.place(anchor="c", relx=0.985, rely=0.05)
+        # ---------------------------
+
         # data container
         self.data_tree = ttk.Treeview(self, columns=self.headers, show="headings")
         self.data_tree.pack(pady=0, fill="both", expand=True)
@@ -583,7 +875,7 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
 
         self.display_complete.set(True)
 
-    def fill_table(self, data: list[PasswordRecord]):
+    def fill_table(self, data):
         for i, row in enumerate(data):
             table_row = [
                 str(i + 1),
@@ -596,7 +888,12 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
                 TimeOracle.get_readable_time(row.record_mdate),
                 row.id,
             ]
-            self.data_tree.insert("", "end", values=table_row)
+
+            if row.warn:
+                self.data_tree.insert("", "end", values=table_row, tags=("warn",))
+            else:
+                self.data_tree.insert("", "end", values=table_row)
+            self.data_tree.tag_configure("warn", background="#F0ebd3")
 
     def clear_data(self):
         for item_id in self.data_tree.get_children():
@@ -657,6 +954,16 @@ class PasswordsDisplayFrame(ctk.CTkFrame):
             self.headers + self.hidden_headers,
         )
 
+    def filter_search_btn_com(self):
+        self.pass_view_controller.filter_search(
+            self.search_ent.get(),
+            [
+                self.username_fltr_ent.get(),
+                self.tag_fltr_ent.get(),
+                self.url_fltr_ent.get(),
+            ],
+        )
+
 
 class PasswordsView:
     def __init__(self, view_controller):
@@ -667,6 +974,7 @@ class PasswordsView:
         self.master_key = None
         self.passwords_file_path = None
         self.passwords_dec_data = []
+        self.settings = None
         # --------------------------
 
         # ---------- frames ----------
@@ -715,5 +1023,8 @@ class PasswordsView:
         self.passwords_dec_data = new_data
         self.passwords_display_frame.display()
 
-    def update_settings(self, new_settings: PasswordSettings):
-        pass
+    def update_settings(self, settings):
+        self.settings = settings
+
+    def filter_search(self, search_value, filter_values):
+        self.passwords_controller.filter_search(filter_values, search_value)
