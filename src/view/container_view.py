@@ -418,16 +418,9 @@ class ContMenuBar(tk.Menu):
             command=self.close_file_clicked,
         )
 
-        self.view_menu = tk.Menu(self.menubar, tearoff=False)
-
-        # self.tools_menu = tk.Menu(self.menubar, tearoff=False)
-
-        self.settings_menu = tk.Menu(self.menubar, tearoff=False)
-
+        # self.settings_menu = tk.Menu(self.menubar, tearoff=False)
         self.menubar.add_cascade(menu=self.file_menu, label="File")
-        self.menubar.add_cascade(menu=self.view_menu, label="View")
-        # self.menubar.add_cascade(menu=self.view_menu, label="Tools")
-        self.menubar.add_cascade(menu=self.settings_menu, label="Settings")
+        # self.menubar.add_cascade(menu=self.settings_menu, label="Settings")
 
     def display(self):
         self.controller.view_controller.config(menu=self.menubar)
@@ -531,6 +524,39 @@ class ContainersDisplayFrame(ctk.CTkFrame):
         )
         self.add_btn.pack(anchor="w", padx=0, pady=(20, 10))
         self.add_btn.configure(state="disabled")
+
+        # filter widgets -------------
+        # filter entry 1
+        self.filename_fltr_ent = ctk.CTkEntry(
+            self, width=100, placeholder_text="Filename"
+        )
+        self.filename_fltr_ent.place(anchor="c", x=330, rely=0.05)
+        # filter entry 2
+        self.sizel_fltr_ent = ctk.CTkEntry(self, width=50, placeholder_text="from")
+        self.sizel_fltr_ent.place(anchor="c", x=420, rely=0.05)
+        # filter entry 3
+        self.sizeu_fltr_ent = ctk.CTkEntry(self, width=50, placeholder_text="to")
+        self.sizeu_fltr_ent.place(anchor="c", x=480, rely=0.05)
+        # filter entry 4
+        self.tag_ent = ctk.CTkEntry(self, width=100, placeholder_text="Tag")
+        self.tag_ent.place(anchor="c", x=570, rely=0.05)
+
+        # seach widgets -------------
+        # search entry
+        self.search_ent = ctk.CTkEntry(self, width=120, placeholder_text="search")
+        self.search_ent.place(anchor="c", relx=0.885, rely=0.05)
+        # search button
+        self.search_btn = ctk.CTkButton(
+            master=self,
+            width=20,
+            height=20,
+            font=("Trebuchet MS", 15),
+            text="⌕",
+            command=self.filter_search_btn_com,
+        )
+        self.search_btn.place(anchor="c", relx=0.985, rely=0.05)
+        # ---------------------------
+
         # data container
         self.data_tree = ttk.Treeview(self, columns=self.headers, show="headings")
         self.data_tree.pack(pady=0, fill="both", expand=True)
@@ -663,14 +689,23 @@ class ContainersDisplayFrame(ctk.CTkFrame):
             title="Choose Destination",
             initialdir="./",
         )
-        print("export clicked")
-        print(destination_path)
         self.container_view_controller.container_controller.export_decrypted_file(
             int(record_id), destination_path
         )
 
     def add_btn_com(self):
         record_window = AddRecordsWindow(self.container_view_controller)
+
+    def filter_search_btn_com(self):
+        self.container_view_controller.filter_search(
+            self.search_ent.get(),
+            [
+                self.filename_fltr_ent.get(),
+                self.sizel_fltr_ent.get(),
+                self.sizeu_fltr_ent.get(),
+                self.tag_ent.get(),
+            ],
+        )
 
 
 class ContainerView:
@@ -725,3 +760,6 @@ class ContainerView:
             initialdir="./",
         )
         self.container_controller.create_file(self.master_key, self.container_path)
+
+    def filter_search(self, search_value, filter_values):
+        self.container_controller.filter_search(filter_values, search_value)
