@@ -59,6 +59,3 @@ class PasswordsController(Controller):
 
     def set_length_setting(self, length: int):
         self.model.set_length_setting(length)
-
-    def filter_search(self, filter_list: list[str], search_term: str):
-        self.model.filter_search(filter_list, search_term)

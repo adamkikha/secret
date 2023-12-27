@@ -68,6 +68,9 @@ class Controller:
     def delete_record(self, id: int):
         return self.model.delete_record(id) == True
 
+    def filter_search(self, filter_list: list[str], search_term: str):
+        self.model.filter_search(filter_list, search_term)
+
     @staticmethod
     def get_password_entropy(password: str):
         char_set_len = len(set(password))
