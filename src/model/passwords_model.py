@@ -34,6 +34,7 @@ class PasswordsModel(Model):
     def close_file(self):
         super().close_file()
         self.settings = PasswordSettings()
+        self.view.update_settings(self.settings)
         self.filter = [None, None, None]
         self.search_term = ""
 
@@ -163,6 +164,8 @@ class PasswordsModel(Model):
 
     def set_passwords_view(self, view):
         self.view = view
+        self.settings = PasswordSettings()
+        self.view.update_settings(self.settings)
 
     def filter_search(self, filter_list: list[str] = None, search_term: str = None):
         with self.update_data_lock:
