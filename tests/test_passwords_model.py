@@ -128,7 +128,6 @@ class Test_PasswordsModel:
         )
         records = self.passwords_model.get_records().copy()
         settings = copy(self.passwords_model.settings)
-        saved_versions = self.passwords_model.saved_versions.copy()
         next_id = self.passwords_model.next_id
         # serialize , save file and load
         self.passwords_model.save_file(
@@ -142,17 +141,13 @@ class Test_PasswordsModel:
         assert self.passwords_model.nonce == b"\x12\x34"
         assert self.passwords_model.salt == b"\x01\xAB"
         assert self.passwords_model.ciphertext == pickle.dumps(
-            (records, settings, saved_versions, next_id)
+            (records, settings, next_id)
         )
 
         # construct records
         self.passwords_model.construct_records(self.passwords_model.ciphertext)
         assert self.passwords_model.next_id == next_id
         assert len(self.passwords_model.get_records()) == len(records)
-        for old_saved_version, new_saved_version in zip(
-            saved_versions, self.passwords_model.saved_versions
-        ):
-            assert old_saved_version == new_saved_version
 
         old_settings = settings
         new_settings = self.passwords_model.settings
@@ -183,7 +178,6 @@ class Test_PasswordsModel:
                 (
                     self.passwords_model.records,
                     self.passwords_model.settings,
-                    self.passwords_model.saved_versions,
                     self.passwords_model.next_id,
                 )
             ),
@@ -192,7 +186,6 @@ class Test_PasswordsModel:
             b"\x01\xAB",
         )
         assert old_dir == os.listdir()
-        assert len(self.passwords_model.saved_versions) == 0
 
         self.passwords_model.set_saved_version_count_setting(3)
         self.passwords_model.save_file(
@@ -200,7 +193,6 @@ class Test_PasswordsModel:
                 (
                     records,
                     self.passwords_model.settings,
-                    self.passwords_model.saved_versions,
                     self.passwords_model.next_id,
                 )
             ),
@@ -208,13 +200,11 @@ class Test_PasswordsModel:
             b"\x12\x34",
             b"\x01\xAB",
         )
-        time.sleep(1)
         self.passwords_model.save_file(
             pickle.dumps(
                 (
                     records,
                     self.passwords_model.settings,
-                    self.passwords_model.saved_versions,
                     self.passwords_model.next_id,
                 )
             ),
@@ -222,13 +212,11 @@ class Test_PasswordsModel:
             b"\x12\x34",
             b"\x01\xAB",
         )
-        time.sleep(1)
         self.passwords_model.save_file(
             pickle.dumps(
                 (
                     records,
                     self.passwords_model.settings,
-                    self.passwords_model.saved_versions,
                     self.passwords_model.next_id,
                 )
             ),
@@ -236,19 +224,17 @@ class Test_PasswordsModel:
             b"\x12\x34",
             b"\x01\xAB",
         )
-        time.sleep(1)
         assert old_dir != os.listdir()
-        old_dir = list(filter(lambda item: ".pass" in item, os.listdir()))
-        assert len(self.passwords_model.saved_versions) == len(old_dir) - 1 == 2
-        for version in self.passwords_model.saved_versions:
-            assert version in old_dir
-            os.remove(version)
+        assert "test1_backups" in os.listdir()
+        backups = os.listdir("test1_backups")
+        assert len(backups) == 2
+        settings = self.passwords_model.settings
+        next_id = self.passwords_model.next_id
 
         # close file
         self.passwords_model.close_file()
         assert self.passwords_model.path == ""
         assert len(self.passwords_model.records) == 0
-        assert len(self.passwords_model.saved_versions) == 0
         assert self.passwords_model.filter == [None, None, None]
         assert self.passwords_model.search_term == ""
         assert self.passwords_model.next_id == 0
@@ -257,10 +243,39 @@ class Test_PasswordsModel:
         with pytest.raises(FileNotFoundError):
             self.passwords_model.initialize("test2.pass", create=False)
 
+        # check proper save after close
+        self.passwords_model.initialize("test1.pass", create=False)
+        self.passwords_model.construct_records(
+            pickle.dumps(
+                (
+                    records,
+                    settings,
+                    next_id,
+                )
+            )
+        )
+        self.passwords_model.save_file(
+            pickle.dumps(
+                (
+                    records,
+                    settings,
+                    next_id,
+                )
+            ),
+            b"\x55\x55",
+            b"\x12\x34",
+            b"\x01\xAB",
+        )
+        new_backups = os.listdir("test1_backups")
+        assert new_backups != backups
+        assert len(new_backups) == 2
+        for version in new_backups:
+            os.remove(os.path.join("test1_backups", version))
+        os.rmdir("test1_backups")
+        os.remove("test1.pass")
+
         # check overwrite
         self.passwords_model.initialize("test1.pass", create=True)
-
-        os.remove("test1.pass")
 
     def test_settings(self):
         self.passwords_model.initialize("test1.pass", create=True)

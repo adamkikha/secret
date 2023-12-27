@@ -10,7 +10,6 @@ class PasswordsModel(Model):
     def __init__(self, time_oracle):
         super().__init__(time_oracle)
         self.settings = PasswordSettings()
-        self.saved_versions = []
         self.filter = [None, None, None]
         self.search_term = ""
 
@@ -21,26 +20,20 @@ class PasswordsModel(Model):
         super().initialize(path, create)
         self.settings = PasswordSettings()
         self.view.update_settings(self.settings)
-        self.saved_versions = []
         self.filter = [None, None, None]
         self.search_term = ""
 
     def construct_records(self, plaintext: bytes):
-        self.records, self.settings, self.saved_versions, self.next_id = pickle.loads(
-            plaintext
-        )
+        self.records, self.settings, self.next_id = pickle.loads(plaintext)
         self.view.update_settings(self.settings)
         self.update_data()
 
     def serialize_records(self):
-        return pickle.dumps(
-            (self.records, self.settings, self.saved_versions, self.next_id)
-        )
+        return pickle.dumps((self.records, self.settings, self.next_id))
 
     def close_file(self):
         super().close_file()
         self.settings = PasswordSettings()
-        self.saved_versions = []
         self.filter = [None, None, None]
         self.search_term = ""
 
@@ -49,14 +42,38 @@ class PasswordsModel(Model):
         with open(self.path, "wb") as file:
             file.write(file_data)
         if self.settings.saved_version_count > 1:
-            date = self.time_oracle.get_readable_time(
-                self.time_oracle.get_current_time()
-            )
-            if len(self.saved_versions) == self.settings.saved_version_count - 1:
-                os.remove(self.saved_versions.pop(0))
-            with open(self.path + "\n" + date, "wb") as file:
+            date = self.time_oracle.get_current_time()
+            dir_name, file_name = os.path.split(self.path)
+            base_name, ext = os.path.splitext(file_name)
+            backup_directory = os.path.join(dir_name, base_name + "_backups")
+            if os.path.isdir(backup_directory):
+                backups = os.listdir(backup_directory)
+                while os.path.isfile(
+                    os.path.join(
+                        backup_directory,
+                        f"{base_name}_{self.time_oracle.get_readable_time(date).replace(':', '-')}"
+                        + ext,
+                    )
+                ):
+                    date = date + 1
+                if len(backups) >= self.settings.saved_version_count - 1:
+                    backups.sort(
+                        key=lambda f: os.path.getmtime(
+                            os.path.join(backup_directory, f)
+                        )
+                    )
+                    os.remove(
+                        os.path.join(
+                            backup_directory,
+                            backups.pop(-(self.settings.saved_version_count - 1)),
+                        )
+                    )
+            else:
+                os.makedirs(backup_directory)
+            date = self.time_oracle.get_readable_time(date).replace(":", "-")
+            new_file_path = os.path.join(backup_directory, f"{base_name}_{date}" + ext)
+            with open(new_file_path, "wb") as file:
                 file.write(file_data)
-            self.saved_versions.append(self.path + "\n" + date)
 
     def set_warn_setting(self, setting: bool):
         self.settings.warn = setting
@@ -70,8 +87,6 @@ class PasswordsModel(Model):
 
     def set_saved_version_count_setting(self, setting: int):
         self.settings.saved_version_count = setting
-        while len(self.saved_versions) + 1 > setting:
-            self.saved_versions.pop(0)
         self.view.update_settings(self.settings)
 
     def set_lower_case_setting(self, setting: bool):
