@@ -37,12 +37,15 @@ class PassGenSettings:
             text="Password length:",
         )
         length_label.grid(row=row_index, column=0, padx=50, pady=5, sticky="w")
-        self.length_entry = ctk.CTkEntry(
+        self.length_entry = ttk.Spinbox(
             container,
-            width=100,
+            from_=1,
+            to=150,
+            width=3,
+            state="readonly",
+            command=self.length_entry_change,
         )
-        self.length_entry.grid(row=row_index, column=1, padx=10, pady=5)
-        self.length_entry.bind("<FocusOut>", self.length_entry_focus_out)
+        self.length_entry.grid(row=row_index, column=1, padx=(8, 0), pady=5)
 
         # checkboxes
         for cbox_name, cbox_var, cbox_com in zip(
@@ -62,7 +65,10 @@ class PassGenSettings:
             cbox.grid(row=row_index, column=1, padx=5, pady=5)
 
     def set_values(self):
-        self.length_entry.insert("0", str(self.container.controller.settings.length))
+        self.length_entry.configure(state="normal")
+        self.length_entry.delete(0, tk.END)
+        self.length_entry.insert(0, self.container.controller.settings.length)
+        self.length_entry.configure(state="readonly")
         self.lower_case_cbox_var.set(self.container.controller.settings.lower_case)
         self.upper_case_cbox_var.set(self.container.controller.settings.upper_case)
         self.numbers_cbox_var.set(self.container.controller.settings.digits)
@@ -85,7 +91,7 @@ class PassGenSettings:
             self.symbols_cbox_var.get()
         )
 
-    def length_entry_focus_out(self, event):
+    def length_entry_change(self):
         self.container.controller.passwords_controller.set_length_setting(
             self.length_entry.get()
         )
@@ -125,7 +131,7 @@ class SettingsWindow(ctk.CTkToplevel):
         # ---------- widgets ----------
         # warnings
         row_index = 0
-        warn_label = ctk.CTkLabel(self, text="Passwords warnings:")
+        warn_label = ctk.CTkLabel(self, text="Passwords warnings (days):")
         warn_label.grid(row=row_index, column=0, padx=50, pady=5, sticky="w")
 
         self.warn_cbox_var = tk.BooleanVar()
@@ -139,22 +145,32 @@ class SettingsWindow(ctk.CTkToplevel):
         )
         self.warn_cbox.grid(row=row_index, column=1, padx=5, pady=5)
 
-        self.warn_entry = ctk.CTkEntry(
-            self, width=50, fg_color="#f2f2f2", state="readonly"
+        self.warn_entry = ttk.Spinbox(
+            self,
+            from_=1,
+            to=2000,
+            width=4,
+            state="readonly",
+            command=self.warn_entry_change,
         )
-        self.warn_entry.place(anchor="c", relx=0.85, rely=0.05)
-        self.warn_entry.bind("<FocusOut>", self.warn_entry_focus_out)
+
+        self.warn_entry.place(relx=0.75, rely=0.03)
 
         # backup
         row_index += 1
         backup_label = ctk.CTkLabel(self, text="Backups:")
         backup_label.grid(row=row_index, column=0, padx=50, pady=5, sticky="w")
 
-        self.backup_entry = ctk.CTkEntry(
+        self.backup_entry = ttk.Spinbox(
             self,
-            width=100,
+            from_=1,
+            to=150,
+            width=3,
+            state="readonly",
+            command=self.backup_entry_change,
         )
-        self.backup_entry.grid(row=row_index, column=1, padx=10, pady=5)
+
+        self.backup_entry.grid(row=row_index, column=1, padx=(8, 0), pady=5)
 
         self.pass_gen_settings = PassGenSettings(self, row_index)
 
@@ -172,33 +188,32 @@ class SettingsWindow(ctk.CTkToplevel):
     def set_settings(self):
         self.warn_cbox_var.set(self.controller.settings.warn)
 
-        if self.warn_cbox_var.get():
-            self.warn_entry.configure(state="normal")
-            self.warn_entry.insert("0", str(self.controller.settings.warn_age))
+        self.warn_entry.configure(state="normal")
+        self.warn_entry.delete(0, tk.END)
+        self.warn_entry.insert(0, self.controller.settings.warn_age)
+        self.warn_entry.configure(state="readonly")
 
-        self.backup_entry.insert("0", str(self.controller.settings.saved_version_count))
+        self.backup_entry.configure(state="normal")
+        self.backup_entry.delete(0, tk.END)
+        self.backup_entry.insert(0, self.controller.settings.saved_version_count)
+        self.backup_entry.configure(state="readonly")
+
         self.pass_gen_settings.set_values()
 
-    def warn_entry_focus_out(self, event):
-        if self.warn_entry.get():
-            self.controller.passwords_controller.set_warn_age_setting(
-                int(self.warn_entry.get())
-            )
+    def warn_entry_change(self):
+        self.controller.passwords_controller.set_warn_age_setting(
+            int(self.warn_entry.get())
+        )
 
-    def cbox_warn_com(self):
-        if self.warn_cbox_var.get():
-            self.warn_entry.configure(
-                state="normal", placeholder_text="Days", fg_color="#ffffff"
-            )
-        else:
-            self.warn_entry.configure(state="readonly", fg_color="#f2f2f2")
-        self.controller.passwords_controller.set_warn_setting(self.warn_cbox_var.get())
-
-    def on_close(self):
-        # Release the grab when the window is closed
+    def backup_entry_change(self):
         self.controller.passwords_controller.set_saved_version_count_setting(
             int(self.backup_entry.get())
         )
+
+    def cbox_warn_com(self):
+        self.controller.passwords_controller.set_warn_setting(self.warn_cbox_var.get())
+
+    def on_close(self):
         self.grab_release()
         self.destroy()
 
