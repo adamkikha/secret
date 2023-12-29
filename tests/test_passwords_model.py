@@ -1,7 +1,5 @@
 import os
 import pickle
-import time
-
 import pytest
 from src.model.passwords_model import PasswordsModel
 from src.utils import TimeOracle

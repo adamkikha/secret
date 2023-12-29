@@ -6,7 +6,8 @@ import os
 
 class ContainerModel(Model):
     def __init__(self, time_oracle):
-        super().__init__(time_oracle)
+        super().__init__()
+        self.time_oracle = time_oracle
         self.file_data: list[bytes] = []
         self.filter = [None, None, None, None]
         self.search_term = ""
@@ -71,38 +72,37 @@ class ContainerModel(Model):
             self.update_data()
 
     def filter_search(self, filter_list: list[str] = None, search_term: str = None):
-        with self.update_data_lock:
-            if filter_list is None:
-                filter_list = self.filter
-            else:
-                self.filter = filter_list
-            if search_term is None:
-                search_term = self.search_term
-            else:
-                self.search_term = search_term
-            result: list[FileRecord] = self.get_records().copy()
+        if filter_list is None:
+            filter_list = self.filter
+        else:
+            self.filter = filter_list
+        if search_term is None:
+            search_term = self.search_term
+        else:
+            self.search_term = search_term
+        result: list[FileRecord] = self.get_records().copy()
 
-            for record in self.get_records():
-                if filter_list[0] and record.name != filter_list[0]:
+        for record in self.get_records():
+            if filter_list[0] and record.name != filter_list[0]:
+                result.remove(record)
+            elif filter_list[1] and record.size < int(filter_list[1]):
+                result.remove(record)
+            elif filter_list[2] and record.size > int(filter_list[2]):
+                result.remove(record)
+            elif filter_list[3] and record.tag != filter_list[3]:
+                result.remove(record)
+            elif search_term != "":
+                match = False
+                for value in (
+                    record.name,
+                    record.tag,
+                    record.notes,
+                ):
+                    if search_term in value:
+                        match = True
+                        break
+                if not match:
                     result.remove(record)
-                elif filter_list[1] and record.size < int(filter_list[1]):
-                    result.remove(record)
-                elif filter_list[2] and record.size > int(filter_list[2]):
-                    result.remove(record)
-                elif filter_list[3] and record.tag != filter_list[3]:
-                    result.remove(record)
-                elif search_term != "":
-                    match = False
-                    for value in (
-                        record.name,
-                        record.tag,
-                        record.notes,
-                    ):
-                        if search_term in value:
-                            match = True
-                            break
-                    if not match:
-                        result.remove(record)
 
             self.view.update_data(result)
 

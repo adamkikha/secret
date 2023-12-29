@@ -1,5 +1,5 @@
 import os
-
+import threading
 from src.model.model import Model
 from src.model.password_record import PasswordRecord
 from src.model.password_settings import PasswordSettings
@@ -8,10 +8,12 @@ import pickle
 
 class PasswordsModel(Model):
     def __init__(self, time_oracle):
-        super().__init__(time_oracle)
+        super().__init__()
+        self.time_oracle = time_oracle
         self.settings = PasswordSettings()
         self.filter = [None, None, None]
         self.search_term = ""
+        self.update_data_lock = threading.Lock()
 
     def initialize(self, path: str, create: bool):
         file_name, ext = os.path.splitext(path)

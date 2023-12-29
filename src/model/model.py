@@ -1,17 +1,13 @@
 import pickle
-import threading
 from src.model.record import Record
-from src.utils import TimeOracle
 
 
 class Model:
-    def __init__(self, time_oracle: TimeOracle):
-        self.time_oracle: TimeOracle = time_oracle
+    def __init__(self):
         self.records: list[Record] = []
         self.next_id: int = 0
         self.path: str = ""
         self.view = None
-        self.update_data_lock = threading.Lock()
 
     def initialize(self, path: str, create: bool):
         self.path = path
@@ -68,5 +64,4 @@ class Model:
         self.update_data()
 
     def update_data(self):
-        with self.update_data_lock:
-            self.view.update_data(self.get_records())
+        self.view.update_data(self.get_records())
