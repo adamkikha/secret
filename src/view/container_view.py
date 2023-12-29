@@ -180,6 +180,7 @@ class RecordsWindow(ctk.CTkToplevel):
         self.record_inter_id = record_inter_id
 
         self.file_name_ent.insert(0, record[0])
+        self.file_name_ent.configure(state="readonly", fg_color="#f2f2f2")
 
         self.tag_ent.insert(0, str(record[1]))
         self.tag_ent.configure(state="readonly", fg_color="#f2f2f2")
@@ -193,6 +194,7 @@ class RecordsWindow(ctk.CTkToplevel):
 
     def btn_edit_com(self):
         # make the fields editable
+        self.file_name_ent.configure(state="normal", fg_color="#ffffff")
         self.tag_ent.configure(state="normal", fg_color="#ffffff")
         self.notes_ent.config(state="normal", bg="#ffffff")
         # change the button text and command function
