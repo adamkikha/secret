@@ -21,8 +21,8 @@
 
 ## Introduction
 
-Secret is a software application developed to address the needs of users who require a secure and convenient way to store and manage their passwords and files on their personal computer. The application provides an encrypted and user-friendly solution for storing and managing sensitive information, without relying on third-party services or cloud storage.
-It is compatible with Windows and Linux operating systems.
+Secret is a Python Desktop application developed to address the needs of users who require a secure and convenient way to store and manage their passwords and files on their personal computer. The application provides an encrypted and user-friendly solution for storing and managing sensitive information, without relying on third-party services or cloud storage.
+It is compatible with Windows and Linux operating systems and uses tkinter for GUI.
 
 ## Features
 
